@@ -2,186 +2,186 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
 / {
-	compatible = "mediatek,mt6768";
-	interrupt-parent = <&gic>;
-	#address-cells = <2>;
-	#size-cells = <2>;
+  compatible = "mediatek,mt6768";
+  interrupt-parent = <&gic>;
+  #address-cells = <2>;
+  #size-cells = <2>;
 
-	psci {
-		compatible = "arm,psci-1.0";
-		method = "smc";
-	};
-	
-	cpu-map {
-			cluster0 {
-				core0 {
-					cpu = <&cpu0>;
-				};
+  psci {
+    compatible = "arm,psci-1.0";
+    method = "smc";
+  };
 
-				core1 {
-					cpu = <&cpu1>;
-				};
+  cpu-map {
+      cluster0 {
+        core0 {
+          cpu = <&cpu0>;
+        };
 
-				core2 {
-					cpu = <&cpu2>;
-				};
+        core1 {
+          cpu = <&cpu1>;
+        };
 
-				core3 {
-					cpu = <&cpu3>;
-				};
+        core2 {
+          cpu = <&cpu2>;
+        };
 
-				core4 {
-					cpu = <&cpu4>;
-				};
+        core3 {
+          cpu = <&cpu3>;
+        };
 
-				core5 {
-					cpu = <&cpu5>;
-				};
-			};
+        core4 {
+          cpu = <&cpu4>;
+        };
 
-			cluster1 {
-				core0 {
-					cpu = <&cpu6>;
-				};
+        core5 {
+          cpu = <&cpu5>;
+        };
+      };
 
-				core1 {
-					cpu = <&cpu7>;
-				};
-			};
-		};
-	};
+      cluster1 {
+        core0 {
+          cpu = <&cpu6>;
+        };
 
-	cpus {
-		#address-cells = <1>;
-		#size-cells = <0>;
+        core1 {
+          cpu = <&cpu7>;
+        };
+      };
+    };
+  };
 
-		cpu0: cpu@0 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x000>;
-		};
+  cpus {
+    #address-cells = <1>;
+    #size-cells = <0>;
 
-		cpu1: cpu@100 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x100>;
-		};
+    cpu0: cpu@0 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x000>;
+    };
 
-		cpu2: cpu@200 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x200>;
-		};
+    cpu1: cpu@100 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x100>;
+    };
 
-		cpu3: cpu@300 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x300>;
-		};
+    cpu2: cpu@200 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x200>;
+    };
 
-		cpu4: cpu@400 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x400>;
-		};
+    cpu3: cpu@300 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x300>;
+    };
 
-		cpu5: cpu@500 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a55";
-			enable-method = "psci";
-			reg = <0x500>;
-		};
+    cpu4: cpu@400 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x400>;
+    };
 
-		cpu6: cpu@600 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a75";
-			enable-method = "psci";
-			reg = <0x600>;
-		};
+    cpu5: cpu@500 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a55";
+      enable-method = "psci";
+      reg = <0x500>;
+    };
 
-		cpu7: cpu@700 {
-			device_type = "cpu";
-			compatible = "arm,cortex-a75";
-			enable-method = "psci";
-			reg = <0x700>;
-		};
-	};
+    cpu6: cpu@600 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a75";
+      enable-method = "psci";
+      reg = <0x600>;
+    };
 
-	clocks {
-		system_clk: dummy13m {
-			compatible = "fixed-clock";
-			#clock-cells = <0>;
-			clock-frequency = <13000000>;
-		  clock-output-names = "system-clk";	
-		};
+    cpu7: cpu@700 {
+      device_type = "cpu";
+      compatible = "arm,cortex-a75";
+      enable-method = "psci";
+      reg = <0x700>;
+    };
+  };
 
-		clk26m: clk26m {
-			compatible = "fixed-clock";
-			#clock-cells = <0>;
-			clock-frequency = <26000000>;
-			clock-output-names = "clk26m";
-		};
-	};
-	
-	wdt-reboot {
-		compatible = "wdt-reboot";
-		wdt = &wdt;	
-		status = "okay";
-	};
+  clocks {
+    system_clk: dummy13m {
+      compatible = "fixed-clock";
+      #clock-cells = <0>;
+      clock-frequency = <13000000>;
+      clock-output-names = "system-clk";
+    };
 
-	soc {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		compatible = "simple-bus";
-		ranges;
+    clk26m: clk26m {
+      compatible = "fixed-clock";
+      #clock-cells = <0>;
+      clock-frequency = <26000000>;
+      clock-output-names = "clk26m";
+    };
+  };
 
-		wdt: watchdog@10007000 {
-			compatible = "mediatek,wdt";
-			reg = <0 0x10007000 0 0x100>;
+  wdt-reboot {
+    compatible = "wdt-reboot";
+    wdt = &wdt;
+    status = "okay";
+  };
+
+  soc {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    compatible = "simple-bus";
+    ranges;
+
+    wdt: watchdog@10007000 {
+      compatible = "mediatek,wdt";
+      reg = <0 0x10007000 0 0x100>;
       interrupts = <GIC_SPI 156 IRQ_TYPE_LEVEL_LOW>;
     };
 
     gpt: timer@10008000 {
-		  compatible = "mediatek,mt7986-timer";
-		  reg = <0 0x10008000 0 0x80>;
-		  interrupts = <GIC_SPI 185 IRQ_TYPE_LEVEL_LOW>;
-		  clocks = <&system_clk>;
-		  clock-names = "system-clk";
-	  };
+      compatible = "mediatek,mt7986-timer";
+      reg = <0 0x10008000 0 0x80>;
+      interrupts = <GIC_SPI 185 IRQ_TYPE_LEVEL_LOW>;
+      clocks = <&system_clk>;
+      clock-names = "system-clk";
+    };
 
-		gic: interrupt-controller@c000000 {
-			compatible = "arm,gic-v3";
-			#interrupt-cells = <3>;
-			interrupt-parent = <&gic>;
-			interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_HIGH>;
-			interrupt-controller;
-			reg = <0 0xc000000 0 0x40000>,	/* GICD */
-			      <0 0xc040000 0 0x200000>;	/* GICR */
-		};
+    gic: interrupt-controller@c000000 {
+      compatible = "arm,gic-v3";
+      #interrupt-cells = <3>;
+      interrupt-parent = <&gic>;
+      interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_HIGH>;
+      interrupt-controller;
+      reg = <0 0xc000000 0 0x40000>,	/* GICD */
+            <0 0xc040000 0 0x200000>;	/* GICR */
+    };
 
-		uart0: serial@11002000 {
-			compatible = "mediatek,hsuart";
-			reg = <0 0x11002000 0 0x1000>;
+    uart0: serial@11002000 {
+      compatible = "mediatek,hsuart";
+      reg = <0 0x11002000 0 0x1000>;
       reg-shift = <2>;
-			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_LOW>;
-			clocks = <&clk26m>;
-			clock-names = "baud", "bus";
-			status = "disabled";
-		};
+      interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_LOW>;
+      clocks = <&clk26m>;
+      clock-names = "baud", "bus";
+      status = "disabled";
+    };
 
-		uart1: serial@11003000 {
-			compatible = "mediatek,hsuart";
-			reg = <0 0x11003000 0 0x1000>;
+    uart1: serial@11003000 {
+      compatible = "mediatek,hsuart";
+      reg = <0 0x11003000 0 0x1000>;
       reg-shift = <2>;
-			interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_LOW>;
-			clocks = <&clk26m>;
-			clock-names = "baud", "bus";
-			status = "disabled";
-		};
+      interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_LOW>;
+      clocks = <&clk26m>;
+      clock-names = "baud", "bus";
+      status = "disabled";
+    };
   };
 };
