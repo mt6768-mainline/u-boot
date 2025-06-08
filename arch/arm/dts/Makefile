@@ -1117,27 +1117,7 @@ dtb-$(CONFIG_SOC_K3_AM62P5) += k3-am62p5-r5-sk.dtb \
 			       k3-am62p5-verdin-wifi-dev.dtb
 
 dtb-$(CONFIG_ARCH_MEDIATEK) += \
-	mt7622-rfb.dtb \
-	mt7623a-unielec-u7623-02-emmc.dtb \
-	mt7622-bananapi-bpi-r64.dtb \
-	mt7623n-bananapi-bpi-r2.dtb \
-	mt7981-rfb.dtb \
-	mt7981-emmc-rfb.dtb \
-	mt7981-sd-rfb.dtb \
-	mt7986a-bpi-r3-sd.dtb \
-	mt7986a-bpi-r3-emmc.dtb \
-	mt7986a-rfb.dtb \
-	mt7986b-rfb.dtb \
-	mt7986a-sd-rfb.dtb \
-	mt7986b-sd-rfb.dtb \
-	mt7986a-emmc-rfb.dtb \
-	mt7986b-emmc-rfb.dtb \
-	mt7988-rfb.dtb \
-	mt7988-sd-rfb.dtb \
-	mt8183-pumpkin.dtb \
-	mt8512-bm1-emmc.dtb \
-	mt8516-pumpkin.dtb \
-	mt8518-ap1-emmc.dtb
+	mt6769z-xiaomi-merlin.dtb
 
 dtb-$(CONFIG_ARCH_NPCM7xx) += nuvoton-npcm750-evb.dtb
 dtb-$(CONFIG_ARCH_NPCM8XX) += nuvoton-npcm845-evb.dtb
