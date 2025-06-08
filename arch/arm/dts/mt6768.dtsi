@@ -49,7 +49,6 @@
         };
       };
     };
-  };
 
   cpus {
     #address-cells = <1>;
