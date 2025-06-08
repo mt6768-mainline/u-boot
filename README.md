@@ -1,6 +1,6 @@
 # "Das U-Boot" for MediaTek MT6768
 ## Supported devices
-Xiaomi Redmi Note 9 (xiaomi-merlin)
+* Xiaomi Redmi Note 9 (xiaomi-merlin)
 
 ## Status
 **Y** = works;\
