@@ -14,7 +14,6 @@
 
   chosen {
     stdout-path = &uart0;
-    // console = &uart0;
     tick-timer = &gpt;
   };
 
