@@ -16,14 +16,9 @@
 * USB - **N**;
 
 ## Building
-Firstly, build `U-Boot` itself:
 ```
 ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make merlin_defconfig
 ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make -j$(nproc)
-```
-
-Then, build the Android boot.img:
-```
 mkbootimg \
   --kernel u-boot-dtb.bin \
   --dtb <stock boot.img dtb> \
