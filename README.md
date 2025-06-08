@@ -16,7 +16,29 @@
 * USB - **N**;
 
 ## Building
-TBD
+Firstly, build `U-Boot` itself:
+```
+ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make merlin_defconfig
+ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make -j$(nproc)
+```
+
+Then, build the Android boot.img:
+```
+mkbootimg \
+  --kernel u-boot-dtb.bin \
+  --dtb <stock boot.img dtb> \
+  --cmdline "bootopt=64S3,32N2,64N2" \
+  --base 0x40078000 \
+  --kernel_offset 0x00008000 \
+  --ramdisk_offset 0x07c08000 \
+  --second_offset 0xbff88000 \
+  --tags_offset 0x0bc08000 \
+  --pagesize 2048 \
+  --os_version 13.0.0 \
+  --os_patch_level 2025-04 \
+  --header_version 2 \
+  --output boot.img
+```
 
 ## Flashing
 TBD
