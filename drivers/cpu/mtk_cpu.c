@@ -71,7 +71,9 @@ static const struct cpu_ops mtk_cpu_ops = {
 static const struct udevice_id mtk_cpu_ids[] = {
 	{ .compatible = "arm,cortex-a7" },
 	{ .compatible = "arm,cortex-a53" },
+	{ .compatible = "arm,cortex-a55" },
 	{ .compatible = "arm,cortex-a73" },
+	{ .compatible = "arm,cortex-a75" },
 	{ /* sentinel */ }
 };
 
