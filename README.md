@@ -31,8 +31,6 @@ mkbootimg \
   --second_offset 0xbff88000 \
   --tags_offset 0x0bc08000 \
   --pagesize 2048 \
-  --os_version 13.0.0 \
-  --os_patch_level 2025-04 \
   --header_version 2 \
   --output boot.img
 ```
