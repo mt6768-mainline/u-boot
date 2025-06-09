@@ -26,7 +26,6 @@ config TARGET_MT6768
 	select ARM64
 	select CPU_ARMV8
 	select MMC_SUPPORTS_TUNING
-	select OF_BOARD_FIXUP
 	help
 		The MediaTek MT6768 (Helio P65) is a ARM64-based SoC 
 		with 2x Cortex-A75 @ 2.0 GHz & 6x Cortex-A55 @ 1.7 GHz.
