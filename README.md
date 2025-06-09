@@ -19,6 +19,7 @@
 ```
 make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- merlin_defconfig
 make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
+mkdtboimg create minimal-dtbo.img arch/arm/dts/mt6769z-xiaomi-merlin-minimal-dtbo.dtb
 mkbootimg \
   --kernel u-boot-dtb.bin \
   --dtb <stock boot.img dtb> \
