@@ -38,4 +38,12 @@ mkbootimg \
 ```
 
 ## Flashing
-TBD
+```
+mtk w dtbo minimal-dtbo.img
+mtk w boot boot.img
+```
+or
+```
+fastboot flash dtbo minimal-dtbo.img
+fastboot flash boot boot.img
+```
