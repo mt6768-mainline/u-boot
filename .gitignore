@@ -5,6 +5,7 @@
 #
 # Normal rules (sorted alphabetically)
 #
+minimal-dtbo.img
 dummy-ramdisk
 .*
 !.checkpatch.conf
