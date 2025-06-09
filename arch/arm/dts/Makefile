@@ -1117,7 +1117,7 @@ dtb-$(CONFIG_SOC_K3_AM62P5) += k3-am62p5-r5-sk.dtb \
 			       k3-am62p5-verdin-wifi-dev.dtb
 
 dtb-$(CONFIG_ARCH_MEDIATEK) += \
-	mt6769z-xiaomi-merlin-minimal-dtbo.dts \
+	mt6769z-xiaomi-merlin-minimal-dtbo.dtb \
 	mt6769z-xiaomi-merlin.dtb
 
 dtb-$(CONFIG_ARCH_NPCM7xx) += nuvoton-npcm750-evb.dtb
