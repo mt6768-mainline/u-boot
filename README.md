@@ -21,8 +21,10 @@ make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- merlin_defconfig
 make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 mkdtboimg create minimal-dtbo.img arch/arm/dts/mt6769z-xiaomi-merlin-minimal-dtbo.dtb
 gzip -c u-boot-dtb.bin > u-boot.gz
+dd if=/dev/random of=dummy-ramdisk bs=2048 count=9
 mkbootimg \
   --kernel u-boot.gz \
+  --ramdisk dummy-ramdisk \
   --dtb arch/arm/dts/mt6769z-xiaomi-merlin.dtb \
   --cmdline "bootopt=64S3,32N2,64N2" \
   --base 0x40078000 \
