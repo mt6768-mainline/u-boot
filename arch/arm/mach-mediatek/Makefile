@@ -4,6 +4,11 @@ obj-y	+= cpu.o
 obj-$(CONFIG_MTK_TZ_MOVABLE)	+= tzcfg.o
 obj-$(CONFIG_XPL_BUILD)	+= spl.o
 
+# Board
+obj-$(CONFIG_BOARD_MERLIN) += ../../../board/xiaomi/merlin/
+
+# SoC
+obj-$(CONFIG_TARGET_MT6768) += mt6768/
 obj-$(CONFIG_TARGET_MT7622) += mt7622/
 obj-$(CONFIG_TARGET_MT7623) += mt7623/
 obj-$(CONFIG_TARGET_MT7629) += mt7629/

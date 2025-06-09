@@ -1,5 +1,17 @@
 if ARCH_MEDIATEK
 
+choice 
+	prompt "MediaTek SoC-based board select"
+
+config BOARD_MERLIN
+	bool "Xiaomi Redmi Note 9 board"
+	depends on TARGET_MT6768
+	help
+		Enable support for Xiaomi Redmi Note 9 phone 
+		based on MT6769Z (Helio G85) SoC.
+
+endchoice
+
 config SYS_SOC
 	default "mediatek"
 
@@ -7,7 +19,18 @@ config SYS_VENDOR
 	default "mediatek"
 
 choice
-	prompt "MediaTek board select"
+	prompt "MediaTek SoC target select"
+
+config TARGET_MT6768
+	bool "MediaTek MT6768 (Helio P65) SoC"
+	select ARM64
+	select CPU_ARMV8
+	select MMC_SUPPORTS_TUNING
+	select OF_BOARD_FIXUP
+	help
+		The MediaTek MT6768 (Helio P65) is a ARM64-based SoC 
+		with 2x Cortex-A75 @ 2.0 GHz & 6x Cortex-A55 @ 1.7 GHz.
+		Peripherals include 2 UARTs, SPI, I2C, USB 2.0, PWM, 
 
 config TARGET_MT7622
 	bool "MediaTek MT7622 SoC"
@@ -93,13 +116,13 @@ config TARGET_MT8365
 	  I2C, I2S, S/PDIF, and several LPDDR3 and LPDDR4 options.
 
 config TARGET_MT8512
-        bool "MediaTek MT8512 SoC"
-        select ARM64
-        help
-          The MediaTek MT8512 is a ARM64-based SoC with a dual-core Cortex-A53.
-          including UART, SPI, USB2.0 and OTG, SD and MMC cards, NAND, PWM,
-          IR RX, I2C, I2S, S/PDIF, and built-in Wi-Fi / Bluetooth digital
-          and several LPDDR3 and LPDDR4 options.
+  bool "MediaTek MT8512 SoC"
+  select ARM64
+  help
+    The MediaTek MT8512 is a ARM64-based SoC with a dual-core Cortex-A53.
+    including UART, SPI, USB2.0 and OTG, SD and MMC cards, NAND, PWM,
+    IR RX, I2C, I2S, S/PDIF, and built-in Wi-Fi / Bluetooth digital
+    and several LPDDR3 and LPDDR4 options.
 
 config TARGET_MT8516
 	bool "MediaTek MT8516 SoC"
@@ -123,6 +146,7 @@ endchoice
 
 config SYS_BOARD
 	string "Board name"
+	default "merlin" if BOARD_MERLIN
 	default "mt7622" if TARGET_MT7622
 	default "mt7623" if TARGET_MT7623
 	default "mt7629" if TARGET_MT7629
@@ -141,6 +165,7 @@ config SYS_BOARD
 	  be used.
 
 config SYS_CONFIG_NAME
+	default "merlin" if BOARD_MERLIN
 	default "mt7622" if TARGET_MT7622
 	default "mt7623" if TARGET_MT7623
 	default "mt7629" if TARGET_MT7629
