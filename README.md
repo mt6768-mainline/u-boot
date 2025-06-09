@@ -17,8 +17,8 @@
 
 ## Building
 ```
-ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make merlin_defconfig
-ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- make -j$(nproc)
+make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- merlin_defconfig
+make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 mkbootimg \
   --kernel u-boot-dtb.bin \
   --dtb <stock boot.img dtb> \
