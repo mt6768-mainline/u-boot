@@ -22,7 +22,7 @@ make ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 mkdtboimg create minimal-dtbo.img arch/arm/dts/mt6769z-xiaomi-merlin-minimal-dtbo.dtb
 mkbootimg \
   --kernel u-boot-dtb.bin \
-  --dtb <stock boot.img dtb> \
+  --dtb arch/arm/dts/mt6769z-xiaomi-merlin.dtb \
   --cmdline "bootopt=64S3,32N2,64N2" \
   --base 0x40078000 \
   --kernel_offset 0x00008000 \
