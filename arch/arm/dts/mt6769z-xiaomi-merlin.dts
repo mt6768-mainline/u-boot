@@ -11,20 +11,7 @@
   model = "Xiaomi Redmi Note 9";
   compatible = "xiaomi,merlin", "mediatek,mt6769z";
   chassis-type = "handset";
-
-  chosen {
-    stdout-path = &uart0;
-    tick-timer = &gpt;
-  };
-
-  memory@40000000 {
-    #address-cells = <2>;
-    #size-cells = <2>;
-    device_type = "memory";
-    /* 4 GB DDR */
-    reg = <0 0x40000000 1 0>;
-  };
-
+  
   /* Use framebuffer set up by previous LK bootloader */
   framebuffer0: framebuffer@7d9b0000 {
     compatible = "simple-framebuffer";
