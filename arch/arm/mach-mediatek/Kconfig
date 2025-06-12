@@ -24,12 +24,12 @@ choice
 config TARGET_MT6768
 	bool "MediaTek MT6768 (Helio P65) SoC"
 	select ARM64
-	select CPU_ARMV8
 	select MMC_SUPPORTS_TUNING
+	imply OF_HAS_PRIOR_STAGE
 	help
 		The MediaTek MT6768 (Helio P65) is a ARM64-based SoC 
 		with 2x Cortex-A75 @ 2.0 GHz & 6x Cortex-A55 @ 1.7 GHz.
-		Peripherals include 2 UARTs, SPI, I2C, USB 2.0, PWM, 
+		Peripherals include 2 UARTs, SPI, I2C, USB 2.0, PWM ... 
 
 config TARGET_MT7622
 	bool "MediaTek MT7622 SoC"
