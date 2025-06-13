@@ -7,8 +7,8 @@
 **P** = partially works;\
 **N** = doesn't work.
 
-* Booting - **P**;
-* UART - **P**;
+* Booting - **Y**;
+* UART - **P** (tx doesn't work?);
 * Display - **N** (simple-framebuffer);
 * Internal storage / eMMC - **N**;
 * External storage / SD card - **N**;
