@@ -111,8 +111,7 @@ static int initr_reloc(void)
 static int initr_caches(void)
 {
 	/* Enable caches */
-	printf("%s: not enabling caches\n", __func__);
-	// enable_caches();
+	enable_caches();
 	return 0;
 }
 #endif
