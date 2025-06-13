@@ -29,7 +29,7 @@ config TARGET_MT6768
 	help
 		The MediaTek MT6768 (Helio P65) is a ARM64-based SoC 
 		with 2x Cortex-A75 @ 2.0 GHz & 6x Cortex-A55 @ 1.7 GHz.
-		Peripherals include 2 UARTs, SPI, I2C, USB 2.0, PWM ... 
+		Peripherals include 2 UARTs, SPI, I2C, USB 2.0, PWM, MIPI DSI, ... 
 
 config TARGET_MT7622
 	bool "MediaTek MT7622 SoC"
