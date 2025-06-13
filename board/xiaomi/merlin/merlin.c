@@ -1,5 +1,4 @@
 #include <config.h>
-#include <dm.h>
 #include <init.h>
 #include <asm/global_data.h>
 #include <asm/armv8/mmu.h>
