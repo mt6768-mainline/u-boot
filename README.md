@@ -8,7 +8,7 @@
 **N** = doesn't work.
 
 * Booting - **Y**;
-* UART - **P** (tx doesn't work?);
+* UART - **?**;
 * Display - **N** (simple-framebuffer);
 * Internal storage / eMMC - **N**;
 * External storage / SD card - **N**;
