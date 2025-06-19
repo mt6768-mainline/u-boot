@@ -1141,7 +1141,8 @@ int mmu_status(void)
 
 void invalidate_icache_all(void)
 {
-	__asm_invalidate_icache_all();
+	/* Hangs on mt6768 if uncommented */
+	// __asm_invalidate_icache_all();
 	__asm_invalidate_l3_icache();
 }
 
