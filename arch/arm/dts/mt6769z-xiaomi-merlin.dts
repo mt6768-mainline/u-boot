@@ -8,6 +8,7 @@
 #include "mt6768.dtsi"
 
 / {
+  /* LK forcefully replaces this prop with "MT6769Z" */
   model = "Xiaomi Redmi Note 9";
   compatible = "xiaomi,merlin", "mediatek,mt6769z";
   chassis-type = "handset";
