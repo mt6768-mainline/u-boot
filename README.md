@@ -3,17 +3,15 @@
 * Xiaomi Redmi Note 9 (xiaomi-merlin)
 
 ## Status
-**Y** = works;\
-**P** = partially works;\
-**N** = doesn't work.
-
-* Booting - **Y**;
-* UART - **Y**;
-* Display - **P** (simple-framebuffer);
-* Internal storage / eMMC - **N**;
-* External storage / SD card - **N**;
-* Buttons - **N**;
-* USB - **N**;
+### What works
+* Booting/relocation
+* UART
+### What doesn't
+* Display with `simple-framebuffer`
+* Internal storage (eMMC)
+* External storage (microSD)
+* Buttons (both PMIC and GPIO)
+* USB MUSB
 
 ## Building
 ```
