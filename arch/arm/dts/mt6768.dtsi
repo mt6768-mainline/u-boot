@@ -7,48 +7,27 @@
   #address-cells = <2>;
   #size-cells = <2>;
 
+  /* /chosen has to be in the FDT */
+  chosen {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
+
+    tick-timer = &gpt;
+    /* /chosen/bootargs prop has to be in the FDT even if empty */
+    bootargs = "";
+  };
+
+  memory@40000000 {
+    /* The previous LK bootloader should fill this reg */
+    reg = <0 0x40000000 0 0>;
+    device_type = "memory";
+  };
+
   psci {
     compatible = "arm,psci-1.0";
     method = "smc";
   };
-
-  cpu-map {
-      cluster0 {
-        core0 {
-          cpu = <&cpu0>;
-        };
-
-        core1 {
-          cpu = <&cpu1>;
-        };
-
-        core2 {
-          cpu = <&cpu2>;
-        };
-
-        core3 {
-          cpu = <&cpu3>;
-        };
-
-        core4 {
-          cpu = <&cpu4>;
-        };
-
-        core5 {
-          cpu = <&cpu5>;
-        };
-      };
-
-      cluster1 {
-        core0 {
-          cpu = <&cpu6>;
-        };
-
-        core1 {
-          cpu = <&cpu7>;
-        };
-      };
-    };
 
   cpus {
     #address-cells = <1>;
@@ -57,57 +36,49 @@
     cpu0: cpu@0 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
       reg = <0x000>;
     };
-
-    cpu1: cpu@100 {
+    
+    cpu1: cpu@1 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
-      reg = <0x100>;
+      reg = <0x001>;
     };
 
-    cpu2: cpu@200 {
+    cpu2: cpu@2 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
-      reg = <0x200>;
+      reg = <0x002>;
     };
 
-    cpu3: cpu@300 {
+    cpu3: cpu@3 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
-      reg = <0x300>;
+      reg = <0x003>;
     };
 
-    cpu4: cpu@400 {
+    cpu4: cpu@100 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
-      reg = <0x400>;
+      reg = <0x004>;
     };
 
-    cpu5: cpu@500 {
+    cpu5: cpu@101 {
       device_type = "cpu";
       compatible = "arm,cortex-a55";
-      enable-method = "psci";
-      reg = <0x500>;
+      reg = <0x005>;
     };
 
-    cpu6: cpu@600 {
+    cpu6: cpu@102 {
       device_type = "cpu";
       compatible = "arm,cortex-a75";
-      enable-method = "psci";
-      reg = <0x600>;
+      reg = <0x006>;
     };
 
-    cpu7: cpu@700 {
+    cpu7: cpu@103 {
       device_type = "cpu";
       compatible = "arm,cortex-a75";
-      enable-method = "psci";
-      reg = <0x700>;
+      reg = <0x007>;
     };
   };
 
@@ -127,12 +98,6 @@
     };
   };
 
-  wdt-reboot {
-    compatible = "wdt-reboot";
-    wdt = &wdt;
-    status = "okay";
-  };
-
   soc {
     #address-cells = <2>;
     #size-cells = <2>;
@@ -140,17 +105,20 @@
     ranges;
 
     wdt: watchdog@10007000 {
-      compatible = "mediatek,wdt";
-      reg = <0 0x10007000 0 0x100>;
+      compatible = "mediatek,mt6768-wdt";
+      reg = <0 0x10007000 0 0x1000>;
       interrupts = <GIC_SPI 156 IRQ_TYPE_LEVEL_LOW>;
+      timeout-sec = <15>;
+      #reset-cells = <1>;
     };
 
     gpt: timer@10008000 {
-      compatible = "mediatek,mt7986-timer";
-      reg = <0 0x10008000 0 0x80>;
+      compatible = "mediatek,mt6768-timer";
+      reg = <0 0x10008000 0 0x1000>;
       interrupts = <GIC_SPI 185 IRQ_TYPE_LEVEL_LOW>;
       clocks = <&system_clk>;
       clock-names = "system-clk";
+      bootph-all;
     };
 
     gic: interrupt-controller@c000000 {
@@ -164,23 +132,49 @@
     };
 
     uart0: serial@11002000 {
-      compatible = "mediatek,hsuart";
+      compatible = "mediatek,mt6768-uart";
       reg = <0 0x11002000 0 0x1000>;
-      reg-shift = <2>;
       interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_LOW>;
       clocks = <&clk26m>;
-      clock-names = "baud", "bus";
+      clock-names = "clk26m";
       status = "disabled";
     };
 
     uart1: serial@11003000 {
-      compatible = "mediatek,hsuart";
+      compatible = "mediatek,mt6768-uart";
       reg = <0 0x11003000 0 0x1000>;
-      reg-shift = <2>;
       interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_LOW>;
       clocks = <&clk26m>;
-      clock-names = "baud", "bus";
+      clock-names = "clk26m";
       status = "disabled";
     };
+  };
+
+  /*
+   * Below nodes (+ chosen in the top of the file) are required
+   * for the LK bootloader to merge with the minimal DTBO.
+   * These get cleaned up in board_fdt_blob_setup().
+   */
+  reserved-memory {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
+  };
+
+  scp@10500000 {
+    compatible = "mediatek,scp";
+  };
+
+  dtbo-dummy {
+    dtbo-dummy;
+  };
+
+  __symbols__ {
+    gpio = "/dtbo-dummy";
+    pio = "/dtbo-dummy";
+    lcm_power_gpio = "/dtbo-dummy";
+    mtkfb = "/dtbo-dummy";
+    keypad = "/dtbo-dummy";
+    odm = "/dtbo-dummy";
   };
 };
