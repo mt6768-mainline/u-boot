@@ -8,8 +8,8 @@
 **N** = doesn't work.
 
 * Booting - **Y**;
-* UART - **P?**;
-* Display - **N** (simple-framebuffer);
+* UART - **Y**;
+* Display - **P** (simple-framebuffer);
 * Internal storage / eMMC - **N**;
 * External storage / SD card - **N**;
 * Buttons - **N**;
