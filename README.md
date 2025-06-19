@@ -7,8 +7,8 @@
 **P** = partially works;\
 **N** = doesn't work.
 
-* Booting - **P** (hangs, gets watchdog rebooted...);
-* UART - **?**;
+* Booting - **Y**;
+* UART - **P?**;
 * Display - **N** (simple-framebuffer);
 * Internal storage / eMMC - **N**;
 * External storage / SD card - **N**;
