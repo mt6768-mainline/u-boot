@@ -293,7 +293,8 @@ static int mtk_serial_of_to_plat(struct udevice *dev)
 
 	priv->force_highspeed = dev_read_bool(dev, "mediatek,force-highspeed");
 	priv->upstream_highspeed_logic =
-		device_is_compatible(dev, "mediatek,mt6577-uart");
+		device_is_compatible(dev, "mediatek,mt6577-uart") ||
+		device_is_compatible(dev, "mediatek,mt6768-uart");
 
 	return 0;
 }
