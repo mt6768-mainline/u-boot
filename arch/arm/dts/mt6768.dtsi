@@ -137,6 +137,8 @@
       interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_LOW>;
       clocks = <&clk26m>;
       clock-names = "clk26m";
+      mediatek,force-highspeed;
+      reg-shift = <2>;
       status = "disabled";
     };
 
@@ -146,6 +148,8 @@
       interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_LOW>;
       clocks = <&clk26m>;
       clock-names = "clk26m";
+      mediatek,force-highspeed;
+      reg-shift = <2>;
       status = "disabled";
     };
   };
