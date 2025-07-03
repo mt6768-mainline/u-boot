@@ -1,4 +1,8 @@
 # "Das U-Boot" for MediaTek MT6768
+> ⚠ Warning: ⚠  
+> Flash MIUI 12.5 firmware first before installation, \
+> MIUI 13 may break a lot of things like PSCI.
+
 Currently supported devices:
 * Xiaomi Redmi Note 9 (xiaomi-merlin)
 
@@ -6,6 +10,7 @@ Currently supported devices:
 ### What works
 * Booting/relocation
 * UART
+* PSCI
 ### What doesn't
 * Display with `simple-framebuffer`
 * Internal storage (eMMC)
