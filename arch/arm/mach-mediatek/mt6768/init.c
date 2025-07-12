@@ -6,22 +6,22 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+/*
 #define MTK_WDT_BASE            0x10007000
 #define MTK_WDT_MODE            0x00
 #define MTK_WDT_MODE_ENABLE     BIT(0)
 #define MTK_WDT_MODE_KEY        (0x22 << 24)
 
-__maybe_unused static void mtk_wdt_disable(void)
+static void mtk_wdt_disable(void)
 {
   u32 tmp;
 
   tmp = readl(MTK_WDT_BASE + MTK_WDT_MODE);
-  /* disable watchdog */
   tmp &= ~MTK_WDT_MODE_ENABLE;
-  /* write key required */
   tmp |= MTK_WDT_MODE_KEY;
   writel(tmp, MTK_WDT_BASE + MTK_WDT_MODE);
 }
+*/
 
 static int lk_fdt_fix_model(void *fdt)
 {
