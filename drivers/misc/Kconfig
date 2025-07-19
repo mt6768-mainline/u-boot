@@ -290,39 +290,9 @@ config CROS_EC_SPI
 	  provides a faster and more robust interface than I2C but the bugs
 	  are less interesting.
 
-config DS4510
-	bool "Enable support for DS4510 CPU supervisor"
-	help
-	  Enable support for the Maxim DS4510 CPU supervisor. It has an
-	  integrated 64-byte EEPROM, four programmable non-volatile I/O pins
-	  and a configurable timer for the supervisor function. The device is
-	  connected over I2C.
-
 config FSL_IIM
 	bool "Enable FSL IC Identification Module (IIM) driver"
 	depends on ARCH_MX5
-
-config FSL_SEC_MON
-	bool "Enable FSL SEC_MON Driver"
-	help
-	  Freescale Security Monitor block is responsible for monitoring
-	  system states.
-	  Security Monitor can be transitioned on any security failures,
-	  like software violations or hardware security violations.
-
-choice
-	prompt "Security monitor interaction endianess"
-	depends on FSL_SEC_MON
-	default SYS_FSL_SEC_MON_BE if PPC
-	default SYS_FSL_SEC_MON_LE
-
-config SYS_FSL_SEC_MON_LE
-	bool "Security monitor interactions are little endian"
-
-config SYS_FSL_SEC_MON_BE
-	bool "Security monitor interactions are big endian"
-
-endchoice
 
 config IRQ
 	bool "Interrupt controller"
@@ -457,19 +427,6 @@ config SPL_PWRSEQ
 	  devices. They are typically referenced by a phandle from another
 	  device. When the device is started up, its power sequence can be
 	  initiated.
-
-config PCA9551_LED
-	bool "Enable PCA9551 LED driver"
-	help
-	  Enable driver for PCA9551 LED controller. This controller
-	  is connected via I2C. So I2C needs to be enabled.
-
-config PCA9551_I2C_ADDR
-	hex "I2C address of PCA9551 LED controller"
-	depends on PCA9551_LED
-	default 0x60
-	help
-	  The I2C address of the PCA9551 LED controller.
 
 config STM32MP_FUSE
 	bool "Enable STM32MP fuse wrapper providing the fuse API"
@@ -672,7 +629,7 @@ config GDSYS_SOC
 
 config IHS_FPGA
 	bool "Enable IHS FPGA driver"
-	depends on MISC
+	depends on MISC && (GDSYS_LEGACY_DRIVERS || SYS_FPGA_FLAVOR_GAZERBEAM)
 	help
 	  Support IHS (Integrated Hardware Systems) FPGA, the main FPGAs on
 	  gdsys devices, which supply the majority of the functionality offered
