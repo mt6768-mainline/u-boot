@@ -26,6 +26,7 @@ static int mtk_cpu_get_desc(const struct udevice *dev, char *buf, int size)
 	uint val;
 
 	regmap_read(plat->hwver, 0, &val);
+	if (val == 0x707) val = 0x6768;
 
 	snprintf(buf, size, "MediaTek MT%04X", val);
 
