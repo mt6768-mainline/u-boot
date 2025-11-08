@@ -1109,6 +1109,7 @@ dtb-$(CONFIG_SOC_K3_AM62P5) += k3-am62p5-r5-sk.dtb \
 			       k3-am62p5-verdin-r5.dtb
 
 dtb-$(CONFIG_ARCH_MEDIATEK) += \
+	mt6768-generic.dtb \
 	mt7622-rfb.dtb \
 	mt7623a-unielec-u7623-02-emmc.dtb \
 	mt7622-bananapi-bpi-r64.dtb \
