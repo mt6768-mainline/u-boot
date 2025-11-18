@@ -5,6 +5,7 @@
 #
 # Normal rules (sorted alphabetically)
 #
+ramdisk
 .*
 !.checkpatch.conf
 *.a
