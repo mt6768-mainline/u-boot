@@ -179,8 +179,8 @@ static int mtk_musb_enable(struct musb *musb)
 		printf("failed to power on USB PHY\n");
 		return ret;
 	}
-	generic_phy_set_mode(&glue->phy, PHY_MODE_USB_DEVICE, 0);
 
+	generic_phy_set_mode(&glue->phy, PHY_MODE_USB_DEVICE, 0);
 	glue->enabled = true;
 	return 0;
 }
@@ -307,7 +307,6 @@ static int mtk_musb_probe(struct udevice *dev)
 
 static int mtk_musb_remove(struct udevice *dev)
 {
-
 	struct mtk_musb_glue *glue = dev_get_priv(dev);
 	struct musb_host_data *host = &glue->mdata;
 
