@@ -75,9 +75,9 @@
     };
 
     hwver: hwver {
-		compatible = "mediatek,hwver", "syscon";
-		reg = <0 0x8000000 0 0xc>;
-	};
+        compatible = "mediatek,hwver", "syscon";
+        reg = <0 0x8000000 0 0xc>;
+    };
 
     clocks {
         system_clk: fixed-factor-13m {
