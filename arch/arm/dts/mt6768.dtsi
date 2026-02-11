@@ -1,6 +1,7 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
-// #include <dt-bindings/clock/mt6768-clk.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/clock/mediatek,mt6768-clk.h>
 
 / {
     compatible = "mediatek,mt6768";
@@ -101,6 +102,24 @@
         compatible = "simple-bus";
         ranges;
 
+        topckgen: syscon@10000000 {
+		compatible = "mediatek,mt6768-topckgen", "syscon";
+		reg = <0 0x10000000 0 0x1000>;
+		#clock-cells = <1>;
+	};
+
+	infracfg: syscon@10001000 {
+		compatible = "mediatek,mt6768-infracfg", "syscon";
+		reg = <0 0x10001000 0 0x1000>;
+		#clock-cells = <1>;
+	};
+
+	apmixedsys: syscon@1000c000 {
+		compatible = "mediatek,mt6768-apmixedsys", "syscon";
+		reg = <0 0x1000c000 0 0x1000>;
+		#clock-cells = <1>;
+	};
+
         wdt: watchdog@10007000 {
             compatible = "mediatek,mt6589-wdt";
             reg = <0 0x10007000 0 0x1000>;
@@ -147,6 +166,35 @@
             mediatek,force-highspeed;
             reg-shift = <2>;
             status = "disabled";
+        };
+
+        usb2: usb@11200000 {
+            compatible = "mediatek,mt6768-musb";
+            reg = <0 0x11200000 0 0x1000>;
+            reg-names = "control";
+            interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-names = "mc";
+            phys = <&usb2port0 PHY_TYPE_USB2>;
+            phy-names = "usb";
+            clocks = <&clk26m>, <&topckgen CLK_TOP_USB_TOP_SEL>, <&topckgen CLK_TOP_UNIVPLL3_D4>;
+            clock-names = "usbpll", "usbmcu", "usb";
+            status = "disabled";
+        };
+
+        usb2phy: t-phy@11cc0000 {
+            compatible = "mediatek,generic-tphy-v1";
+            reg = <0 0x11cc0000 0 0x800>;
+            #address-cells = <2>;
+            #size-cells = <2>;
+            ranges;
+            status = "disabled";
+
+            usb2port0: usb-phy@11cc0800 {
+                reg = <0 0x11cc0800 0 0x100>;
+                clocks = <&clk26m>;
+                clock-names = "ref";
+                #phy-cells = <1>;
+            };
         };
     };
 };
