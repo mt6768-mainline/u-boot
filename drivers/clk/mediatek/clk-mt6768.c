@@ -1,0 +1,631 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * Generated MediaTek clock driver for mt6768 SoC
+ *
+ * Copyright (c) 2026 CHANGEME.
+ */
+
+#include <dm.h>
+#include <asm/io.h>
+#include <dt-bindings/clock/mediatek,mt6768-clk.h>
+
+#include "clk-mtk.h"
+
+#define MT6768_PLL_FMAX		(3800UL * MHZ)
+#define MT6768_PLL_FMIN		(1500UL * MHZ)
+#define MT6768_INTEGER_BITS	8
+
+#define CON0_MT6768_RST_BAR	BIT(23)
+#define CON0_MT6768_EN_MASK	BIT(0)
+
+#define PLL(_id, _reg, _pwr_reg, _flags, _pcwbits, \
+	    _pd_reg, _pd_shift, _pcw_reg, _pcw_shift) {	\
+		.id = _id,						\
+		.reg = _reg,						\
+		.pwr_reg = _pwr_reg,					\
+		.en_mask = CON0_MT6768_EN_MASK,					\
+		.rst_bar_mask = CON0_MT6768_RST_BAR,				\
+		.fmax = MT6768_PLL_FMAX,				\
+		.fmin = MT6768_PLL_FMIN,				\
+		.flags = _flags,					\
+		.pcwbits = _pcwbits,					\
+		.pcwibits = MT6768_INTEGER_BITS,					\
+		.pd_reg = _pd_reg,					\
+		.pd_shift = _pd_shift,					\
+		.pcw_reg = _pcw_reg,					\
+		.pcw_shift = _pcw_shift,				\
+	}
+
+static struct mtk_pll_data apmixed_plls[] = {
+	PLL(CLK_APMIXED_ARMPLL, 0x0208, 0x0214, 1, 22, 0x020C, 24, 0x020C, 0),
+	PLL(CLK_APMIXED_ARMPLL_L, 0x0218, 0x0224, 1, 22, 0x021C, 24, 0x021C, 0),
+	PLL(CLK_APMIXED_CCIPLL, 0x0228, 0x0234, 1, 22, 0x022C, 24, 0x022C, 0),
+	PLL(CLK_APMIXED_UNIV2PLL, 0x0238, 0x0244, HAVE_RST_BAR, 22, 0x023C, 24, 0x023C, 0),
+	PLL(CLK_APMIXED_MFGPLL, 0x0248, 0x0254, HAVE_RST_BAR, 22, 0x024C, 24, 0x024C, 0),
+	PLL(CLK_APMIXED_MAINPLL, 0x0258, 0x0264, 1, 22, 0x025C, 24, 0x025C, 0),
+	PLL(CLK_APMIXED_APLL1, 0x0308, 0x0318, HAVE_RST_BAR, 32, 0x030C, 24, 0x0310, 0),
+	PLL(CLK_APMIXED_MMPLL, 0x031C, 0x0328, HAVE_RST_BAR, 22, 0x0320, 24, 0x0320, 0),
+	PLL(CLK_APMIXED_MPLL, 0x032C, 0x0338, 1, 22, 0x0330, 24, 0x0330, 0),
+	PLL(CLK_APMIXED_MSDCPLL, 0x033C, 0x0348, HAVE_RST_BAR, 22, 0x0320, 24, 0x0340, 0),
+};
+
+static const struct mtk_fixed_clk top_fixed_clks[] = {
+	FIXED_CLK(CLK_TOP_F_FRTC, CLK_XTAL, 32768), // Failed to resolve clk32k, guessed CLK_XTAL
+	FIXED_CLK(CLK_TOP_CLK26M, CLK_XTAL, 26000000), // Failed to resolve clk26m, guessed CLK_XTAL
+	FIXED_CLK(CLK_TOP_DMPLL, CLK_XTAL, 466000000), // Failed to resolve NULL, guessed CLK_XTAL
+};
+
+static const struct mtk_fixed_factor top_fixed_divs[] = {
+	FACTOR(CLK_TOP_CLK13M, CLK_TOP_CLK26M, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL, CLK_APMIXED_MAINPLL, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_SYSPLL_D2, CLK_APMIXED_MAINPLL, 1, 2, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_SYSPLL1_D2, CLK_TOP_SYSPLL_D2, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL1_D4, CLK_TOP_SYSPLL_D2, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL1_D8, CLK_TOP_SYSPLL_D2, 1, 8, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL1_D16, CLK_TOP_SYSPLL_D2, 1, 16, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL_D3, CLK_APMIXED_MAINPLL, 1, 3, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_SYSPLL2_D2, CLK_TOP_SYSPLL_D3, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL2_D4, CLK_TOP_SYSPLL_D3, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL2_D8, CLK_TOP_SYSPLL_D3, 1, 8, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL_D5, CLK_APMIXED_MAINPLL, 1, 5, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_SYSPLL3_D2, CLK_TOP_SYSPLL_D5, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL3_D4, CLK_TOP_SYSPLL_D5, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL_D7, CLK_APMIXED_MAINPLL, 1, 7, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_SYSPLL4_D2, CLK_TOP_SYSPLL_D7, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SYSPLL4_D4, CLK_TOP_SYSPLL_D7, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_USB20_192M, CLK_TOP_UNIVPLL, 2, 13, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_USB20_192M_D4, CLK_TOP_USB20_192M, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_USB20_192M_D8, CLK_TOP_USB20_192M, 1, 8, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_USB20_192M_D16, CLK_TOP_USB20_192M, 1, 16, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_USB20_192M_D32, CLK_TOP_USB20_192M, 1, 32, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL, CLK_APMIXED_UNIV2PLL, 1, 2, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_UNIVPLL_D2, CLK_TOP_UNIVPLL, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL1_D2, CLK_TOP_UNIVPLL_D2, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL1_D4, CLK_TOP_UNIVPLL_D2, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL_D3, CLK_TOP_UNIVPLL, 1, 3, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL2_D2, CLK_TOP_UNIVPLL_D3, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL2_D4, CLK_TOP_UNIVPLL_D3, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL2_D8, CLK_TOP_UNIVPLL_D3, 1, 8, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL2_D32, CLK_TOP_UNIVPLL_D3, 1, 32, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL_D5, CLK_TOP_UNIVPLL, 1, 5, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL3_D2, CLK_TOP_UNIVPLL_D5, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_UNIVPLL3_D4, CLK_TOP_UNIVPLL_D5, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MMPLL, CLK_APMIXED_MMPLL, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_MMPLL_D2, CLK_TOP_MMPLL, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MPLL, CLK_APMIXED_MPLL, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_DA_MPLL_104M_DIV, CLK_TOP_MPLL, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_DA_MPLL_52M_DIV, CLK_TOP_MPLL, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MFGPLL, CLK_APMIXED_MFGPLL, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_MSDCPLL, CLK_APMIXED_MSDCPLL, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_MSDCPLL_D2, CLK_TOP_MSDCPLL, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_APLL1, CLK_APMIXED_APLL1, 1, 1, CLK_PARENT_APMIXED),
+	FACTOR(CLK_TOP_APLL1_D2, CLK_TOP_APLL1, 1, 2, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_APLL1_D4, CLK_TOP_APLL1, 1, 4, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_APLL1_D8, CLK_TOP_APLL1, 1, 8, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1, /* Failed to resolve */, 1, 1, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1_D2, CLK_TOP_ULPOSC1, 1, 2, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1_D4, CLK_TOP_ULPOSC1, 1, 4, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1_D8, CLK_TOP_ULPOSC1, 1, 8, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1_D16, CLK_TOP_ULPOSC1, 1, 16, CLK_PARENT_TOPCKGEN),
+	//FACTOR(CLK_TOP_ULPOSC1_D32, CLK_TOP_ULPOSC1, 1, 32, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_F26M, CLK_TOP_CLK26M, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_AXI, CLK_TOP_AXI_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MM, CLK_TOP_MM_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SCP, CLK_TOP_SCP_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MFG, CLK_TOP_MFG_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_FUART, CLK_TOP_UART_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SPI, CLK_TOP_SPI_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MSDC50_0_HCLK, CLK_TOP_MSDC50_0_HCLK_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MSDC50_0, CLK_TOP_MSDC50_0_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_MSDC30_1, CLK_TOP_MSDC30_1_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_AUDIO, CLK_TOP_AUDIO_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_AUD_1, CLK_TOP_AUD_1_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_AUD_ENGEN1, CLK_TOP_AUD_ENGEN1_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_FDISP_PWM, CLK_TOP_DISP_PWM_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_SSPM, CLK_TOP_SSPM_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_DXCC, CLK_TOP_DXCC_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_I2C, CLK_TOP_I2C_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_FPWM, CLK_TOP_PWM_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_FSENINF, CLK_TOP_SENINF_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_AES_FDE, CLK_TOP_AES_FDE_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_VENC, CLK_TOP_VENC_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_CAM, CLK_TOP_CAM_SEL, 1, 1, CLK_PARENT_TOPCKGEN),
+	FACTOR(CLK_TOP_F_BIST2FPC, CLK_TOP_UNIVPLL2_D2, 1, 1, CLK_PARENT_TOPCKGEN),
+};
+
+static const int axi_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL_D7,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_SYSPLL3_D2,
+};
+static const int mem_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_DMPLL,
+	CLK_TOP_APLL1,
+};
+static const int mm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MMPLL,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_SYSPLL_D5,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_UNIVPLL_D5,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_MMPLL_D2,
+};
+static const int scp_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL4_D2,
+	CLK_TOP_UNIVPLL2_D2,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_SYSPLL_D3,
+	CLK_TOP_UNIVPLL_D3,
+};
+static const int mfg_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MFGPLL,
+	CLK_TOP_SYSPLL_D3,
+	CLK_TOP_UNIVPLL_D3,
+};
+static const int atb_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_SYSPLL1_D2,
+};
+static const int camtg_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_USB20_192M_D8,
+	CLK_TOP_UNIVPLL2_D8,
+	CLK_TOP_USB20_192M_D4,
+	CLK_TOP_UNIVPLL2_D32,
+	CLK_TOP_USB20_192M_D16,
+	CLK_TOP_USB20_192M_D32,
+};
+static const int uart_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL2_D8,
+};
+static const int spi_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL3_D2,
+	CLK_TOP_SYSPLL4_D2,
+	CLK_TOP_SYSPLL2_D4,
+};
+static const int msdc5hclk_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_UNIVPLL1_D4,
+	CLK_TOP_SYSPLL2_D2,
+};
+static const int msdc50_0_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MSDCPLL,
+	CLK_TOP_SYSPLL2_D2,
+	CLK_TOP_SYSPLL4_D2,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_UNIVPLL_D5,
+	CLK_TOP_UNIVPLL1_D4,
+};
+static const int msdc30_1_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MSDCPLL_D2,
+	CLK_TOP_UNIVPLL2_D2,
+	CLK_TOP_SYSPLL2_D2,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_UNIVPLL1_D4,
+	CLK_TOP_USB20_192M_D4,
+	CLK_TOP_SYSPLL2_D4,
+};
+static const int audio_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL3_D4,
+	CLK_TOP_SYSPLL4_D4,
+	CLK_TOP_SYSPLL1_D16,
+};
+static const int aud_intbus_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_SYSPLL4_D2,
+};
+static const int aud_1_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_APLL1,
+};
+static const int aud_engen1_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_APLL1_D2,
+	CLK_TOP_APLL1_D4,
+	CLK_TOP_APLL1_D8,
+};
+static const int disp_pwm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL2_D4,
+	CLK_TOP_ULPOSC1_D2,
+	CLK_TOP_ULPOSC1_D8,
+};
+static const int sspm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_SYSPLL_D3,
+};
+static const int dxcc_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_SYSPLL1_D8,
+};
+static const int usb_top_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL3_D4,
+};
+static const int spm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL1_D8,
+};
+static const int i2c_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL3_D4,
+	CLK_TOP_UNIVPLL3_D2,
+	CLK_TOP_SYSPLL1_D8,
+	CLK_TOP_SYSPLL2_D8,
+};
+static const int pwm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL3_D4,
+	CLK_TOP_SYSPLL1_D8,
+};
+static const int seninf_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL1_D4,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_UNIVPLL2_D2,
+};
+static const int aes_fde_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MSDCPLL,
+	CLK_TOP_UNIVPLL_D3,
+	CLK_TOP_UNIVPLL2_D2,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_SYSPLL1_D2,
+};
+static const int ulposc_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_ULPOSC1_D4,
+	CLK_TOP_ULPOSC1_D8,
+	CLK_TOP_ULPOSC1_D16,
+	CLK_TOP_ULPOSC1_D32,
+};
+static const int camtm_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_UNIVPLL1_D4,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_UNIVPLL2_D2,
+};
+static const int venc_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_MMPLL,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_SYSPLL_D5,
+	CLK_TOP_SYSPLL1_D4,
+	CLK_TOP_SYSPLL_D3,
+	CLK_TOP_UNIVPLL_D3,
+	CLK_TOP_UNIVPLL1_D2,
+};
+static const int cam_parents[] = {
+	CLK_TOP_CLK26M,
+	CLK_TOP_SYSPLL_D2,
+	CLK_TOP_SYSPLL1_D2,
+	CLK_TOP_SYSPLL_D5,
+	CLK_TOP_MMPLL,
+	CLK_TOP_UNIVPLL_D5,
+	CLK_TOP_UNIVPLL1_D2,
+	CLK_TOP_MMPLL_D2,
+};
+static const int i2s0_m_ck_parents[] = {
+	CLK_TOP_AUD_1_SEL,
+};
+static const int i2s1_m_ck_parents[] = {
+	CLK_TOP_AUD_1_SEL,
+};
+static const int i2s2_m_ck_parents[] = {
+	CLK_TOP_AUD_1_SEL,
+};
+static const int i2s3_m_ck_parents[] = {
+	CLK_TOP_AUD_1_SEL,
+};
+
+static const struct mtk_composite top_muxes[] = {
+	MUX(CLK_TOP_AXI_SEL, axi_parents, 0x40, 0, 2),
+	MUX(CLK_TOP_MEM_SEL, mem_parents, 0x40, 8, 2),
+	MUX(CLK_TOP_MM_SEL, mm_parents, 0x40, 16, 3),
+	MUX(CLK_TOP_SCP_SEL, scp_parents, 0x40, 24, 3),
+	MUX(CLK_TOP_MFG_SEL, mfg_parents, 0x50, 0, 2),
+	MUX(CLK_TOP_ATB_SEL, atb_parents, 0x50, 8, 2),
+	MUX(CLK_TOP_CAMTG_SEL, camtg_parents, 0x50, 16, 3),
+	MUX(CLK_TOP_CAMTG1_SEL, camtg_parents, 0x50, 24, 3),
+	MUX(CLK_TOP_CAMTG2_SEL, camtg_parents, 0x60, 0, 3),
+	MUX(CLK_TOP_CAMTG3_SEL, camtg_parents, 0x60, 8, 3),
+	MUX(CLK_TOP_UART_SEL, uart_parents, 0x60, 16, 1),
+	MUX(CLK_TOP_SPI_SEL, spi_parents, 0x60, 24, 2),
+	MUX(CLK_TOP_MSDC50_0_HCLK_SEL, msdc5hclk_parents, 0x70, 0, 2),
+	MUX(CLK_TOP_MSDC50_0_SEL, msdc50_0_parents, 0x70, 8, 3),
+	MUX(CLK_TOP_MSDC30_1_SEL, msdc30_1_parents, 0x70, 16, 3),
+	MUX(CLK_TOP_AUDIO_SEL, audio_parents, 0x70, 24, 2),
+	MUX(CLK_TOP_AUD_INTBUS_SEL, aud_intbus_parents, 0x80, 0, 2),
+	MUX(CLK_TOP_AUD_1_SEL, aud_1_parents, 0x80, 8, 1),
+	MUX(CLK_TOP_AUD_ENGEN1_SEL, aud_engen1_parents, 0x80, 16, 2),
+	MUX(CLK_TOP_DISP_PWM_SEL, disp_pwm_parents, 0x80, 24, 2),
+	MUX(CLK_TOP_SSPM_SEL, sspm_parents, 0x90, 0, 2),
+	MUX(CLK_TOP_DXCC_SEL, dxcc_parents, 0x90, 8, 2),
+	MUX(CLK_TOP_USB_TOP_SEL, usb_top_parents, 0x90, 16, 1),
+	MUX(CLK_TOP_SPM_SEL, spm_parents, 0x90, 24, 1),
+	MUX(CLK_TOP_I2C_SEL, i2c_parents, 0xa0, 0, 3),
+	MUX(CLK_TOP_PWM_SEL, pwm_parents, 0xa0, 8, 2),
+	MUX(CLK_TOP_SENINF_SEL, seninf_parents, 0xa0, 16, 2),
+	MUX(CLK_TOP_AES_FDE_SEL, aes_fde_parents, 0xa0, 24, 3),
+	MUX(CLK_TOP_PWRAP_ULPOSC_SEL, ulposc_parents, 0xb0, 0, 3),
+	MUX(CLK_TOP_CAMTM_SEL, camtm_parents, 0xb0, 8, 2),
+	MUX(CLK_TOP_VENC_SEL, venc_parents, 0xb0, 16, 3),
+	MUX(CLK_TOP_CAM_SEL, cam_parents, 0xb0, 24, 3),
+};
+
+static const struct mtk_clk_tree mt6768_clk_tree = {
+	.xtal_rate = 26 * MHZ,
+	.xtal2_rate = 26 * MHZ,
+	.fdivs_offs = CLK_TOP_CLK13M,
+	.muxes_offs = CLK_TOP_AXI_SEL,
+	.plls = apmixed_plls,
+	.fclks = top_fixed_clks,
+	.fdivs = top_fixed_divs,
+	.muxes = top_muxes,
+};
+
+static const struct mtk_gate_regs infra0_cg_regs = {
+	.set_ofs = 0x200,
+	.clr_ofs = 0x200,
+	.sta_ofs = 0x200,
+};
+
+static const struct mtk_gate_regs infra1_cg_regs = {
+	.set_ofs = 0x74,
+	.clr_ofs = 0x74,
+	.sta_ofs = 0x74,
+};
+
+static const struct mtk_gate_regs infra2_cg_regs = {
+	.set_ofs = 0x80,
+	.clr_ofs = 0x84,
+	.sta_ofs = 0x90,
+};
+
+static const struct mtk_gate_regs infra3_cg_regs = {
+	.set_ofs = 0x88,
+	.clr_ofs = 0x8c,
+	.sta_ofs = 0x94,
+};
+
+static const struct mtk_gate_regs infra4_cg_regs = {
+	.set_ofs = 0xa4,
+	.clr_ofs = 0xa8,
+	.sta_ofs = 0xac,
+};
+
+static const struct mtk_gate_regs infra5_cg_regs = {
+	.set_ofs = 0xc0,
+	.clr_ofs = 0xc4,
+	.sta_ofs = 0xc8,
+};
+
+#define GATE_INFRA0(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra0_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_NO_SETCLR_INV | CLK_PARENT_TOPCKGEN,		\
+	}
+
+#define GATE_INFRA1(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra1_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_NO_SETCLR | CLK_PARENT_TOPCKGEN,		\
+	}
+
+#define GATE_INFRA2(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra2_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_SETCLR | CLK_PARENT_TOPCKGEN,		\
+	}
+
+#define GATE_INFRA3(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra3_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_SETCLR | CLK_PARENT_TOPCKGEN,		\
+	}
+
+#define GATE_INFRA4(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra4_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_SETCLR | CLK_PARENT_TOPCKGEN,		\
+	}
+
+#define GATE_INFRA5(_id, _parent, _shift) {		\
+		.id = _id,						\
+		.parent = _parent,					\
+		.regs = &infra5_cg_regs,				\
+		.shift = _shift,					\
+		.flags = CLK_GATE_SETCLR | CLK_PARENT_TOPCKGEN,		\
+	}
+
+static const struct mtk_gate infra_clks[] = {
+	///* INFRA0 */
+	GATE_INFRA0(CLK_INFRA_TOPAXI_DISABLE, CLK_TOP_AXI, 31),
+	///* INFRA1 */
+	//GATE_INFRA1(CLK_INFRA_PERI_DCM_RG_FORCE_CLKOFF, CLK_TOP_AXI, 2),
+	/* INFRA2 */
+	GATE_INFRA2(CLK_INFRA_PMIC_TMR, CLK_TOP_F_F26M, 0),
+	GATE_INFRA2(CLK_INFRA_PMIC_AP, CLK_TOP_F_F26M, 1),
+	GATE_INFRA2(CLK_INFRA_PMIC_MD, CLK_TOP_F_F26M, 2),
+	GATE_INFRA2(CLK_INFRA_PMIC_CONN, CLK_TOP_F_F26M, 3),
+	GATE_INFRA2(CLK_INFRA_SCP_CORE, CLK_TOP_SCP, 4),
+	GATE_INFRA2(CLK_INFRA_SEJ, CLK_TOP_AXI, 5),
+	GATE_INFRA2(CLK_INFRA_APXGPT, CLK_TOP_AXI, 6),
+	GATE_INFRA2(CLK_INFRA_ICUSB, CLK_TOP_AXI, 8),
+	GATE_INFRA2(CLK_INFRA_GCE, CLK_TOP_AXI, 9),
+	GATE_INFRA2(CLK_INFRA_THERM, CLK_TOP_AXI, 10),
+	GATE_INFRA2(CLK_INFRA_I2C_AP, CLK_TOP_I2C, 11),
+	GATE_INFRA2(CLK_INFRA_I2C_CCU, CLK_TOP_I2C, 12),
+	GATE_INFRA2(CLK_INFRA_I2C_SSPM, CLK_TOP_I2C, 13),
+	GATE_INFRA2(CLK_INFRA_I2C_RSV, CLK_TOP_I2C, 14),
+	GATE_INFRA2(CLK_INFRA_PWM_HCLK, CLK_TOP_AXI, 15),
+	GATE_INFRA2(CLK_INFRA_PWM1, CLK_TOP_F_FPWM, 16),
+	GATE_INFRA2(CLK_INFRA_PWM2, CLK_TOP_F_FPWM, 17),
+	GATE_INFRA2(CLK_INFRA_PWM3, CLK_TOP_F_FPWM, 18),
+	GATE_INFRA2(CLK_INFRA_PWM4, CLK_TOP_F_FPWM, 19),
+	GATE_INFRA2(CLK_INFRA_PWM5, CLK_TOP_F_FPWM, 20),
+	GATE_INFRA2(CLK_INFRA_PWM, CLK_TOP_F_FPWM, 21),
+	GATE_INFRA2(CLK_INFRA_UART0, CLK_TOP_F_FUART, 22),
+	GATE_INFRA2(CLK_INFRA_UART1, CLK_TOP_F_FUART, 23),
+	GATE_INFRA2(CLK_INFRA_GCE_26M, CLK_TOP_F_F26M, 27),
+	GATE_INFRA2(CLK_INFRA_CQ_DMA_FPC, CLK_TOP_AXI, 28),
+	GATE_INFRA2(CLK_INFRA_BTIF, CLK_TOP_AXI, 31),
+	/* INFRA3 */
+	GATE_INFRA3(CLK_INFRA_SPI0, CLK_TOP_SPI, 1),
+	GATE_INFRA3(CLK_INFRA_MSDC0, CLK_TOP_MSDC50_0_HCLK, 2),
+	GATE_INFRA3(CLK_INFRA_MSDC1, CLK_TOP_AXI, 4),
+	GATE_INFRA3(CLK_INFRA_DVFSRC, CLK_TOP_F_F26M, 7),
+	GATE_INFRA3(CLK_INFRA_GCPU, CLK_TOP_AXI, 8),
+	GATE_INFRA3(CLK_INFRA_TRNG, CLK_TOP_AXI, 9),
+	GATE_INFRA3(CLK_INFRA_AUXADC, CLK_TOP_F_F26M, 10),
+	GATE_INFRA3(CLK_INFRA_CPUM, CLK_TOP_AXI, 11),
+	GATE_INFRA3(CLK_INFRA_CCIF1_AP, CLK_TOP_AXI, 12),
+	GATE_INFRA3(CLK_INFRA_CCIF1_MD, CLK_TOP_AXI, 13),
+	GATE_INFRA3(CLK_INFRA_AUXADC_MD, CLK_TOP_F_F26M, 14),
+	GATE_INFRA3(CLK_INFRA_AP_DMA, CLK_TOP_AXI, 18),
+	GATE_INFRA3(CLK_INFRA_XIU, CLK_TOP_AXI, 19),
+	GATE_INFRA3(CLK_INFRA_DEVICE_APC, CLK_TOP_AXI, 20),
+	GATE_INFRA3(CLK_INFRA_CCIF_AP, CLK_TOP_AXI, 23),
+	GATE_INFRA3(CLK_INFRA_DEBUGTOP, CLK_TOP_AXI, 24),
+	GATE_INFRA3(CLK_INFRA_AUDIO, CLK_TOP_AXI, 25),
+	GATE_INFRA3(CLK_INFRA_CCIF_MD, CLK_TOP_AXI, 26),
+	GATE_INFRA3(CLK_INFRA_DXCC_SEC_CORE, CLK_TOP_DXCC, 27),
+	GATE_INFRA3(CLK_INFRA_DXCC_AO, CLK_TOP_DXCC, 28),
+	GATE_INFRA3(CLK_INFRA_DRAMC_F26M, CLK_TOP_F_F26M, 31),
+	/* INFRA4 */
+	GATE_INFRA4(CLK_INFRA_RG_PWM_FBCLK6, CLK_TOP_F_F26M, 0),
+	GATE_INFRA4(CLK_INFRA_DISP_PWM, CLK_TOP_F_FDISP_PWM, 2),
+	GATE_INFRA4(CLK_INFRA_CLDMA_BCLK, CLK_TOP_AXI, 3),
+	GATE_INFRA4(CLK_INFRA_AUDIO_26M_BCLK, CLK_TOP_F_F26M, 4),
+	GATE_INFRA4(CLK_INFRA_SPI1, CLK_TOP_SPI, 6),
+	GATE_INFRA4(CLK_INFRA_I2C4, CLK_TOP_I2C, 7),
+	GATE_INFRA4(CLK_INFRA_MODEM_TEMP_SHARE, CLK_TOP_F_F26M, 8),
+	GATE_INFRA4(CLK_INFRA_SPI2, CLK_TOP_SPI, 9),
+	GATE_INFRA4(CLK_INFRA_SPI3, CLK_TOP_SPI, 10),
+	GATE_INFRA4(CLK_INFRA_SSPM, CLK_TOP_SSPM, 15),
+	GATE_INFRA4(CLK_INFRA_I2C5, CLK_TOP_I2C, 18),
+	GATE_INFRA4(CLK_INFRA_I2C5_ARBITER, CLK_TOP_I2C, 19),
+	GATE_INFRA4(CLK_INFRA_I2C5_IMM, CLK_TOP_I2C, 20),
+	GATE_INFRA4(CLK_INFRA_I2C1_ARBITER, CLK_TOP_I2C, 21),
+	GATE_INFRA4(CLK_INFRA_I2C1_IMM, CLK_TOP_I2C, 22),
+	GATE_INFRA4(CLK_INFRA_I2C2_ARBITER, CLK_TOP_I2C, 23),
+	GATE_INFRA4(CLK_INFRA_I2C2_IMM, CLK_TOP_I2C, 24),
+	GATE_INFRA4(CLK_INFRA_SPI4, CLK_TOP_SPI, 25),
+	GATE_INFRA4(CLK_INFRA_SPI5, CLK_TOP_SPI, 26),
+	GATE_INFRA4(CLK_INFRA_CQ_DMA, CLK_TOP_AXI, 27),
+	GATE_INFRA4(CLK_INFRA_FAES_FDE, CLK_TOP_AES_FDE, 29),
+	/* INFRA5 */
+	GATE_INFRA5(CLK_INFRA_MSDC0_SELF, CLK_TOP_MSDC50_0, 0),
+	GATE_INFRA5(CLK_INFRA_MSDC1_SELF, CLK_TOP_MSDC50_0, 1),
+	GATE_INFRA5(CLK_INFRA_SSPM_26M_SELF, CLK_TOP_F_F26M, 3),
+	GATE_INFRA5(CLK_INFRA_SSPM_32K_SELF, CLK_TOP_F_FRTC, 4),
+	GATE_INFRA5(CLK_INFRA_I2C6, CLK_TOP_I2C, 6),
+	GATE_INFRA5(CLK_INFRA_AP_MSDC0, CLK_TOP_MSDC50_0, 7),
+	GATE_INFRA5(CLK_INFRA_MD_MSDC0, CLK_TOP_MSDC50_0, 8),
+	GATE_INFRA5(CLK_INFRA_MSDC0_SRC, CLK_TOP_MSDC50_0, 9),
+	GATE_INFRA5(CLK_INFRA_MSDC1_SRC, CLK_TOP_MSDC30_1, 10),
+	GATE_INFRA5(CLK_INFRA_SEJ_F13M, CLK_TOP_F_F26M, 15),
+	GATE_INFRA5(CLK_INFRA_AES_TOP0_BCLK, CLK_TOP_AXI, 16),
+	GATE_INFRA5(CLK_INFRA_MCU_PM_BCLK, CLK_TOP_AXI, 17),
+	GATE_INFRA5(CLK_INFRA_CCIF2_AP, CLK_TOP_AXI, 18),
+	GATE_INFRA5(CLK_INFRA_CCIF2_MD, CLK_TOP_AXI, 19),
+	GATE_INFRA5(CLK_INFRA_CCIF3_AP, CLK_TOP_AXI, 20),
+	GATE_INFRA5(CLK_INFRA_CCIF3_MD, CLK_TOP_AXI, 21),
+};
+
+static int mt6768_apmixedsys_probe(struct udevice *dev)
+{
+	printf("apmixed init\n");
+	int top = mtk_common_clk_init(dev, &mt6768_clk_tree);
+		printf("apmixed init: %d\n", top);
+	return top;
+}
+
+static int mt6768_topckgen_probe(struct udevice *dev)
+{
+	printf("top init\n");
+	int top = mtk_common_clk_init(dev, &mt6768_clk_tree);
+	printf("top init: %d\n", top);
+	return top;
+}
+
+static int mt6768_infracfg_probe(struct udevice *dev)
+{
+	printf("infra probe\n");
+	return mtk_common_clk_gate_init(dev, &mt6768_clk_tree, infra_clks);
+}
+
+static const struct udevice_id mt6768_apmixed_compat[] = {
+	{ .compatible = "mediatek,mt6768-apmixedsys", },
+	{ }
+};
+
+static const struct udevice_id mt6768_topckgen_compat[] = {
+	{ .compatible = "mediatek,mt6768-topckgen", },
+	{ }
+};
+
+static const struct udevice_id mt6768_infracfg_compat[] = {
+	{ .compatible = "mediatek,mt6768-infracfg", },
+	{ }
+};
+
+U_BOOT_DRIVER(mtk_clk_apmixedsys) = {
+	.name = "mt6768-apmixedsys",
+	.id = UCLASS_CLK,
+	.of_match = mt6768_apmixed_compat,
+	.probe = mt6768_apmixedsys_probe,
+	.priv_auto = sizeof(struct mtk_clk_priv),
+	.ops = &mtk_clk_apmixedsys_ops,
+	.flags = DM_FLAG_PRE_RELOC,
+};
+
+U_BOOT_DRIVER(mtk_clk_topckgen) = {
+	.name = "mt6768-topckgen",
+	.id = UCLASS_CLK,
+	.of_match = mt6768_topckgen_compat,
+	.probe = mt6768_topckgen_probe,
+	.priv_auto = sizeof(struct mtk_clk_priv),
+	.ops = &mtk_clk_topckgen_ops,
+	.flags = DM_FLAG_PRE_RELOC,
+};
+
+U_BOOT_DRIVER(mtk_clk_infracfg) = {
+	.name = "mt6768-infracfg",
+	.id = UCLASS_CLK,
+	.of_match = mt6768_infracfg_compat,
+	.probe = mt6768_infracfg_probe,
+	.priv_auto = sizeof(struct mtk_clk_priv),
+	.ops = &mtk_clk_gate_ops,
+	.flags = DM_FLAG_PRE_RELOC,
+};
+
