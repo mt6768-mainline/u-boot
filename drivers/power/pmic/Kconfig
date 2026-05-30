@@ -234,6 +234,12 @@ config PMIC_MAX8997
 	- MUIC
 	- Others
 
+config MEDIATEK_PWRAP
+	bool "MediaTek PWRAP support"
+	depends on OF_CONTROL
+	help
+	  Support for MediaTek SoC PWRAP.
+
 config PMIC_QCOM
 	bool "Enable Driver Model for Qualcomm generic PMIC"
 	---help---
