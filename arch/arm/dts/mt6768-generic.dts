@@ -50,3 +50,73 @@
 &usb2port0 {
     status = "okay";
 };
+
+&mmc0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&mmc0_pins_default>;
+    status = "okay";
+};
+
+&mmc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc1_pins_default>;
+	status = "okay";
+	//bus-width = <4>;
+	//max-frequency = <50000000>;
+	no-mmc;
+	no-sdio;
+	cap-sd-highspeed;
+	//sd-uhs-ddr50;
+	//sd-uhs-sdr104;
+	sd-uhs-sdr12;
+	sd-uhs-sdr25;
+    	broken-cd;
+};
+
+&pinctrl {
+	mmc0_pins_default: mmc0default {
+		mux {
+			function = "msdc";
+			groups = "msdc0";
+		};
+
+		conf-cmd-data {
+			pins = "MSDC0_CMD", "MSDC0_DAT0", "MSDC0_DAT1",
+			       "MSDC0_DAT2", "MSDC0_DAT3", "MSDC0_DAT4",
+			       "MSDC0_DAT5", "MSDC0_DAT6", "MSDC0_DAT7";
+			input-enable;
+			bias-pull-up = <MTK_PUPD_SET_R1R0_01>;
+		};
+
+		conf-clk {
+			pins = "MSDC0_CLK";
+			bias-pull-down = <MTK_PUPD_SET_R1R0_10>;
+		};
+
+		conf-rst {
+			pins = "MSDC0_RSTB";
+			bias-pull-up = <MTK_PUPD_SET_R1R0_01>;
+		};
+	};
+
+	mmc1_pins_default: mmc1default {
+		mux {
+			function = "msdc";
+			groups = "msdc1";
+		};
+
+		conf-cmd-data {
+			pins = "MSDC1_CMD", "MSDC1_DAT0", "MSDC1_DAT1",
+			       "MSDC1_DAT2", "MSDC1_DAT3";
+			input-enable;
+			drive-strength = <4>;
+			bias-pull-up = <MTK_PUPD_SET_R1R0_01>;
+		};
+
+		conf-clk {
+			pins = "MSDC1_CLK";
+			drive-strength = <4>;
+			bias-pull-down = <MTK_PUPD_SET_R1R0_10>;
+		};
+	};
+};
