@@ -181,7 +181,7 @@ static void mtk_hw_read_cross_field(struct udevice *dev,
 	*value = (h << nbits_l) | l;
 }
 
-static int mtk_hw_set_value(struct udevice *dev, int pin, int field,
+int mtk_hw_set_value(struct udevice *dev, int pin, int field,
 			    int value)
 {
 	struct mtk_pin_field pf;

@@ -260,6 +260,8 @@ int mtk_pinconf_bias_set_v1(struct udevice *dev, u32 pin, bool disable,
 int mtk_pinconf_input_enable_v1(struct udevice *dev, u32 pin, u32 arg);
 int mtk_pinconf_drive_set_v0(struct udevice *dev, u32 pin, u32 arg);
 int mtk_pinconf_drive_set_v1(struct udevice *dev, u32 pin, u32 arg);
+int mtk_hw_set_value(struct udevice *dev, int pin, int field,
+			    int value);
 
 #endif
 
