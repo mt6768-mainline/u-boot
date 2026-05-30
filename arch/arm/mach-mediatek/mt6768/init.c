@@ -131,6 +131,7 @@ int dram_init_banksize(void)
 void reset_cpu(void)
 {
 	printf("resetting ...\n");
+	/* wdt reset: */
 	/* reset counter */
 	writel(0x1971, 0x10007000 + 0x8);
 	/* SW reset */
@@ -156,6 +157,8 @@ int board_late_init(void)
 		return ret;
 	}
 
+	ret = uclass_get_device_by_driver(UCLASS_PMIC, DM_DRIVER_GET(mtk_pwrap), &dev);
+
 	/*
      * Set our custom kernel/FDT/ramdisk addresses
      * because we have CONFIG_ANDROID_BOOT_IMAGE_IGNORE_BLOB_ADDR enabled that fixes:
@@ -165,6 +168,8 @@ int board_late_init(void)
      * causes bootm to malloc a buffer at 0x0 which makes it crash, we fix this.
      *
      * Fastboot buffer addr remains 0x45000000, we don't overlap with anything.
+     *
+     * XXX: maybe change this
      */
 	env_set("kernel_addr_r", "40000000");
 	env_set("fdt_addr_r", "41000000");
@@ -190,6 +195,7 @@ int board_late_init(void)
 	return 0;
 }
 
+/* kindly stolen from riscv code */
 int fdt_copy_resv_mem_node(const void *src, void *dst)
 {
 	u32 phandle;
