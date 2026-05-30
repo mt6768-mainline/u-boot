@@ -24,6 +24,7 @@ obj-$(CONFIG_CLK_THEAD) += thead/
 obj-$(CONFIG_$(PHASE_)CLK_INTEL) += intel/
 obj-$(CONFIG_ARCH_ASPEED) += aspeed/
 obj-$(CONFIG_ARCH_MEDIATEK) += mediatek/
+obj-$(CONFIG_ARCH_MEDIATEK) += mediatek-ccf/
 obj-$(CONFIG_ARCH_MESON) += meson/
 obj-$(CONFIG_ARCH_MTMIPS) += mtmips/
 obj-$(CONFIG_ARCH_NPCM) += nuvoton/
