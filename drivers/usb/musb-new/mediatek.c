@@ -51,9 +51,9 @@ struct mtk_musb_glue {
 	/* track if hw is on or not */
 	bool enabled;
 	/* clocks */
-	struct clk usbpll_clk;
-	struct clk usbmcu_clk;
-	struct clk usb_clk;
+	struct clk univpll_clk;
+	struct clk mcu_clk;
+	struct clk main_clk;
 	/* phy */
 	struct phy phy;
 };
@@ -203,9 +203,9 @@ int mtk_musb_platform_exit(struct musb *musb)
 		return ret;
 	}
 
-	clk_disable(&glue->usb_clk);
-	clk_disable(&glue->usbmcu_clk);
-	clk_disable(&glue->usbpll_clk);
+	clk_disable(&glue->main_clk);
+	clk_disable(&glue->mcu_clk);
+	clk_disable(&glue->univpll_clk);
 
 	return 0;
 }
@@ -245,41 +245,41 @@ static int mtk_musb_probe(struct udevice *dev)
 		return -EINVAL;
 
 	/* get */
-	ret = clk_get_by_name(dev, "usbpll", &glue->usbpll_clk);
+	ret = clk_get_by_name(dev, "univpll", &glue->univpll_clk);
 	if (ret) {
-		dev_err(dev, "failed to get usbpll clock\n");
+		dev_err(dev, "failed to get univpll clock\n");
 		return ret;
 	}
-	ret = clk_get_by_name(dev, "usbmcu", &glue->usbmcu_clk);
+	ret = clk_get_by_name(dev, "mcu", &glue->mcu_clk);
 	if (ret) {
-		dev_err(dev, "failed to get usbmcu clock\n");
+		dev_err(dev, "failed to get mcu clock\n");
 		return ret;
 	}
-	ret = clk_get_by_name(dev, "usb", &glue->usb_clk);
+	ret = clk_get_by_name(dev, "main", &glue->main_clk);
 	if (ret) {
 		dev_err(dev, "failed to get usb clock\n");
 		return ret;
 	}
 
 	/* then enable clocks */
-	ret = clk_enable(&glue->usbpll_clk);
+	ret = clk_enable(&glue->univpll_clk);
 	if (ret) {
-		dev_err(dev, "failed to enable usbpll clock\n");
+		dev_err(dev, "failed to enable univpll clock\n");
 		return ret;
 	}
-	ret = clk_enable(&glue->usbmcu_clk);
+	ret = clk_enable(&glue->mcu_clk);
 	if (ret) {
-		dev_err(dev, "failed to enable usbmcu clock\n");
+		dev_err(dev, "failed to enable mcu clock\n");
 		return ret;
 	}
-	ret = clk_enable(&glue->usb_clk);
+	ret = clk_enable(&glue->main_clk);
 	if (ret) {
-		dev_err(dev, "failed to enable usb clock\n");
+		dev_err(dev, "failed to enable main clock\n");
 		return ret;
 	}
 
 	/* get */
-	ret = generic_phy_get_by_name(dev, "usb", &glue->phy);
+	ret = generic_phy_get_by_index(dev, 0, &glue->phy);
 	if (ret) {
 		pr_err("failed to get USB PHY\n");
 		return ret;
