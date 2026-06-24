@@ -341,17 +341,17 @@ static struct musb_hdrc_config musb_config = {
 	.ram_bits = 11,
 };
 
-static const struct mtk_musb_config mt6768_cfg = {
+static const struct mtk_musb_config mediatek_cfg = {
 	.config = &musb_config,
 };
 
 static const struct udevice_id mtk_musb_ids[] = {
-	{ .compatible = "mediatek,mt6768-musb", .data = (ulong)&mt6768_cfg },
+	{ .compatible = "mediatek,mtk-musb", .data = (ulong)&mediatek_cfg },
 	{ }
 };
 
-U_BOOT_DRIVER(mt6768_musb) = {
-	.name = "mt6768_musb",
+U_BOOT_DRIVER(mediatek_musb) = {
+	.name = "mediatek_musb",
 	.id = UCLASS_USB_GADGET_GENERIC,
 	.of_match = mtk_musb_ids,
 	.probe = mtk_musb_probe,

@@ -29,12 +29,12 @@ config USB_MUSB_SC5XX
 	  Say y here to enable support for the USB controller on
 	  ADI SC57X/SC58X processors.
 
-config USB_MUSB_MT6768
-	bool "Enable Mediatek MT6768 USB controller"
+config USB_MUSB_MEDIATEK
+	bool "Enable Mediatek USB controller"
 	depends on ARCH_MEDIATEK
 	select USB_MUSB_PIO_ONLY
 	help
-	  Say y to enable support for MediaTek MT6572 USB controller
+	  Say y to enable support for MediaTek USB controller
 
 config USB_MUSB_DA8XX
 	bool "Enable DA8xx MUSB Controller"
