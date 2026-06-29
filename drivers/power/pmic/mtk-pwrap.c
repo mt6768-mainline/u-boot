@@ -10,6 +10,7 @@
 #include <clk.h>
 #include <dm.h>
 #include <dm/device_compat.h>
+#include <dm/lists.h>
 #include <linux/bitfield.h>
 #include <linux/err.h>
 #include <power/pmic.h>
@@ -883,6 +884,43 @@ static int mtk_pwrap_probe(struct udevice *dev)
 	return 0;
 }
 
+static int mtk_pwrap_bind_child_devs(struct udevice *dev)
+{
+	int ret = 0, err = 0;
+	ofnode node, pmic_node;
+
+	pmic_node = dev_read_first_subnode(dev);
+	for (node = ofnode_first_subnode(pmic_node);
+	     ofnode_valid(node);
+	     node = ofnode_next_subnode(node)) {
+		const char *node_name = ofnode_get_name(node);
+
+		/*
+		 * Avoid trying to bind the regulators node, regulator
+		 * binding is handled by pmic_bind_children().
+		 */
+		if (strcmp(node_name, "regulators") == 0)
+			continue;
+
+		if (!ofnode_is_enabled(node)) {
+			dev_dbg(dev, "%s failed to bind\n", node_name);
+			continue;
+		}
+
+		err = lists_bind_fdt(dev, node, NULL, NULL,
+				     gd->flags & GD_FLG_RELOC ? false : true);
+		if (err && !ret) {
+			ret = err;
+			dev_dbg(dev, "%s: ret=%d\n", node_name, ret);
+		}
+	}
+
+	if (ret)
+		dev_dbg(dev, "Some drivers failed to bind\n");
+
+	return ret;
+}
+
 static int mtk_pwrap_bind(struct udevice *dev)
 {
 	ofnode pmic_node, regulators_node;
@@ -916,7 +954,12 @@ static int mtk_pwrap_bind(struct udevice *dev)
 		dev_dbg(dev, "regulators subnode not found\n");
 	}
 
-	return 0;
+	/*
+	 * MediaTek PMICs are Multi-Function Devices (MFD)
+	 * so they are expected to have child devices, for example
+	 * buttons, RTC, etc.
+	 */
+	return mtk_pwrap_bind_child_devs(dev);
 }
 
 static int mtk_pwrap_reg_count(struct udevice *dev)
