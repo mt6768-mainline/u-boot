@@ -59,6 +59,8 @@ enum {
 
 
 /* PMIC Registers */
+#define MT6359_TOPSTATUS			0x002a
+#define MT6359_TOP_RST_MISC			0x014c
 #define MT6359_BUCK_VPU_CON0			0x1488
 #define MT6359_BUCK_VPU_DBG1			0x14a8
 #define MT6359_BUCK_VPU_ELR0			0x14ac

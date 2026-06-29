@@ -42,6 +42,8 @@ enum {
 
 /* PMIC Registers */
 #define MT6323_CID			0x0100
+#define MT6323_TOP_RST_MISC		0x011a
+#define MT6323_CHRSTATUS		0x0142
 #define MT6323_VPROC_CON5		0x0216
 #define MT6323_VPROC_CON7		0x021A
 #define MT6323_VPROC_CON9		0x021E

@@ -39,6 +39,15 @@ config BUTTON_GPIO
 	  The GPIO driver must used driver model. Buttons are configured using
 	  the device tree.
 
+config BUTTON_MTK_PMIC
+	bool "MediaTek PMIC button"
+	depends on BUTTON
+	depends on DM_PMIC_MTK_PWRAP
+	help
+	  Enable support for the power and home buttons on MediaTek PMICs
+	  (such as mt6323, mt6357, and mt6359). These will be configured
+	  using the device tree.
+
 config BUTTON_QCOM_PMIC
 	bool "Qualcomm power button"
 	depends on BUTTON
