@@ -587,6 +587,15 @@ config DM_REGULATOR_MT6359
 	  This driver supports the control of different power rails of device
 	  through regulator interface.
 
+config DM_REGULATOR_MT6323
+	bool "Enable driver for MediaTek MT6323 PMIC regulators"
+	depends on DM_REGULATOR && DM_PMIC_MTK_PWRAP
+	help
+	  Say y here to select this option to enable the power regulator of
+	  MediaTek MT6323 PMIC.
+	  This driver supports the control of different power rails of device
+	  through regulator interface.
+
 config DM_REGULATOR_PMBUS_HELPER
 	bool "Shared regulator helpers for PMBus chip drivers"
 	depends on DM_REGULATOR && PMBUS && DM_I2C
