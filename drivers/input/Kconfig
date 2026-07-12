@@ -96,6 +96,13 @@ config I8042_KEYB
 	  variable 'keymap' to "de" to select German. Keyboard repeat is
 	  handled by the keyboard itself.
 
+config MEDIATEK_KEYBOARD
+	bool "MediaTek Keypad support"
+	depends on ARCH_MEDIATEK
+	help
+	  Say Y here if you want to use the keypad on MediaTek SoCs.
+	  If unsure, say N.
+
 config TEGRA_KEYBOARD
 	bool "NVIDIA Tegra internal matrix keyboard controller support"
 	depends on ARCH_TEGRA
