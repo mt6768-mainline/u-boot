@@ -319,9 +319,8 @@ static int mtk_musb_remove(struct udevice *dev)
 }
 
 static struct musb_fifo_cfg mtk_musb_mode_cfg[] = {
-	/* hw has 8 eps but set to 6 to avoid issues */
 	MUSB_EP_FIFO_SINGLE(1, FIFO_TX, 512),
-	MUSB_EP_FIFO_SINGLE(1, FIFO_RX, 512),
+	MUSB_EP_FIFO_DOUBLE(1, FIFO_RX, 512),
 	MUSB_EP_FIFO_SINGLE(2, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(2, FIFO_RX, 512),
 	MUSB_EP_FIFO_SINGLE(3, FIFO_TX, 512),
@@ -330,6 +329,10 @@ static struct musb_fifo_cfg mtk_musb_mode_cfg[] = {
 	MUSB_EP_FIFO_SINGLE(4, FIFO_RX, 512),
 	MUSB_EP_FIFO_SINGLE(5, FIFO_TX, 512),
 	MUSB_EP_FIFO_SINGLE(5, FIFO_RX, 512),
+	//MUSB_EP_FIFO_SINGLE(6, FIFO_TX, 1024),
+	//MUSB_EP_FIFO_SINGLE(6, FIFO_RX, 1024),
+	//MUSB_EP_FIFO_SINGLE(7, FIFO_TX, 512),
+	//MUSB_EP_FIFO_SINGLE(7, FIFO_RX, 64),
 };
 
 static struct musb_hdrc_config musb_config = {
