@@ -448,6 +448,11 @@ static unsigned int rx_bytes_expected(struct usb_ep *ep)
 	return rx_remain;
 }
 
+static bool rx_fast_mode_ok(struct usb_ep *ep)
+{
+	return !(fastboot_data_remaining() % usb_endpoint_maxp(ep->desc));
+}
+
 static void rx_handler_dl_image(struct usb_ep *ep, struct usb_request *req)
 {
 	char response[FASTBOOT_RESPONSE_LEN] = {0};
@@ -474,6 +479,7 @@ static void rx_handler_dl_image(struct usb_ep *ep, struct usb_request *req)
 		 */
 		req->complete = rx_handler_command;
 		req->length = EP_BUFFER_SIZE;
+		req->short_not_ok = false;
 
 		fastboot_tx_write_str(response);
 	} else {
@@ -556,6 +562,7 @@ static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 	if (!strncmp("DATA", response, 4)) {
 		req->complete = rx_handler_dl_image;
 		req->length = rx_bytes_expected(ep);
+		req->short_not_ok = rx_fast_mode_ok(ep);
 	}
 
 	if (!strncmp("OKAY", response, 4)) {
