@@ -201,6 +201,9 @@ enum musb_g_ep0_state {
  * @adjust_channel_params: pre check for standard dma channel_program func
  * @pre_root_reset_end: called before the root usb port reset flag gets cleared
  * @post_root_reset_end: called after the root usb port reset flag gets cleared
+ * @quirks:	platform-specific quirks flags
+ * @dma_init:	DMA controller creation function
+ * @dma_exit:	DMA controller destruction function
  */
 struct musb_platform_ops {
 	int	(*init)(struct musb *musb);
@@ -224,6 +227,11 @@ struct musb_platform_ops {
 				dma_addr_t *dma_addr, u32 *len);
 	void	(*pre_root_reset_end)(struct musb *musb);
 	void	(*post_root_reset_end)(struct musb *musb);
+
+	/* DMA support */
+	u32	quirks;
+	struct dma_controller *(*dma_init)(struct musb *musb, void __iomem *base);
+	void	(*dma_exit)(struct dma_controller *c);
 };
 
 /*

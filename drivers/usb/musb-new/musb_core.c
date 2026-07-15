@@ -1647,31 +1647,35 @@ void musb_dma_completion(struct musb *musb, u8 epnum, u8 transmit)
 #ifndef CONFIG_USB_TUSB_OMAP_DMA
 		if (!is_cppi_enabled()) {
 			/* endpoint 0 */
+#ifdef CONFIG_USB_MUSB_HOST
 			if (devctl & MUSB_DEVCTL_HM)
 				musb_h_ep0_irq(musb);
-			else
+#endif
+			if (is_peripheral_capable())
 				musb_g_ep0_irq(musb);
 		}
 #endif
 	} else {
 		/* endpoints 1..15 */
 		if (transmit) {
+#ifdef CONFIG_USB_MUSB_HOST
 			if (devctl & MUSB_DEVCTL_HM) {
 				if (is_host_capable())
 					musb_host_tx(musb, epnum);
-			} else {
-				if (is_peripheral_capable())
-					musb_g_tx(musb, epnum);
 			}
+#endif
+			if (is_peripheral_capable())
+				musb_g_tx(musb, epnum);
 		} else {
 			/* receive */
+#ifdef CONFIG_USB_MUSB_HOST
 			if (devctl & MUSB_DEVCTL_HM) {
 				if (is_host_capable())
 					musb_host_rx(musb, epnum);
-			} else {
-				if (is_peripheral_capable())
-					musb_g_rx(musb, epnum);
 			}
+#endif
+			if (is_peripheral_capable())
+				musb_g_rx(musb, epnum);
 		}
 	}
 }
@@ -1892,10 +1896,7 @@ static void musb_free(struct musb *musb)
 		free_irq(musb->nIrq, musb);
 	}
 	if (is_dma_capable() && musb->dma_controller) {
-		struct dma_controller	*c = musb->dma_controller;
-
-		(void) c->stop(c);
-		dma_controller_destroy(c);
+		musb->ops->dma_exit(musb->dma_controller);
 	}
 
 	kfree(musb);
@@ -1984,13 +1985,8 @@ musb_init_controller(struct musb_hdrc_platform_data *plat, struct device *dev,
 	pm_runtime_get_sync(musb->controller);
 
 #ifndef CONFIG_USB_MUSB_PIO_ONLY
-	if (use_dma && dev->dma_mask) {
-		struct dma_controller	*c;
-
-		c = dma_controller_create(musb, musb->mregs);
-		musb->dma_controller = c;
-		if (c)
-			(void) c->start(c);
+	if (use_dma) {
+		musb->dma_controller = musb->ops->dma_init(musb, musb->mregs);
 	}
 #endif
 #ifndef __UBOOT__

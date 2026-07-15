@@ -362,7 +362,8 @@ static void txstate(struct musb *musb, struct musb_request *req)
 			csr);
 
 #ifndef	CONFIG_USB_MUSB_PIO_ONLY
-	if (is_buffer_mapped(req)) {
+	/* Gadget TX DMA corrupts short fastboot responses on this controller. */
+	if (use_dma && is_buffer_mapped(req)) {
 		struct dma_controller	*c = musb->dma_controller;
 		size_t request_size;
 
@@ -519,7 +520,16 @@ void musb_g_tx(struct musb *musb, u8 epnum)
 	if (csr & MUSB_TXCSR_P_UNDERRUN) {
 		/* We NAKed, no big deal... little reason to care. */
 		csr |=	 MUSB_TXCSR_P_WZC_BITS;
-		csr &= ~(MUSB_TXCSR_P_UNDERRUN | MUSB_TXCSR_TXPKTRDY);
+		csr &= ~MUSB_TXCSR_P_UNDERRUN;
+		/*
+		 * Don't clear TXPKTRDY if DMA is used for this transfer.
+		 * The DMA completion handler sets TXPKTRDY after DMA
+		 * finishes, and the hardware should transmit the data.
+		 * Only clear TXPKTRDY for PIO transfers.
+		 */
+		if (!dma) {
+			csr &= ~MUSB_TXCSR_TXPKTRDY;
+		}
 		musb_writew(epio, MUSB_TXCSR, csr);
 		dev_vdbg(musb->controller, "underrun on ep%d, req %p\n",
 				epnum, request);
@@ -593,6 +603,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
 					musb_ep->end_point.name);
 				return;
 			}
+			request = &req->request;
 		}
 
 		txstate(musb, req);

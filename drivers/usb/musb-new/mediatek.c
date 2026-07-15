@@ -25,6 +25,7 @@
 #include "musb_uboot.h"
 #include "musb_gadget.h"
 #include "musb_io.h"
+#include "musb_dma.h"
 
 #define to_mtk_musb_glue(d)	container_of(d, struct mtk_musb_glue, dev)
 
@@ -43,6 +44,10 @@
 #define RX_INT_STATUS		BIT(1)
 #define USBCOM_INT_STATUS	BIT(2)
 #define DMA_INT_STATUS 		BIT(3)
+
+/* DMA interrupt mask */
+#define DMA_INTR_STATUS_MSK		GENMASK(7, 0)
+#define DMA_INTR_UNMASK_SET_MSK	GENMASK(31, 24)
 
 struct mtk_musb_glue {
 	struct device dev;
@@ -122,6 +127,11 @@ static irqreturn_t mtk_musb_interrupt(int irq, void *dev_id)
 	if (l1_ints & (TX_INT_STATUS | RX_INT_STATUS | USBCOM_INT_STATUS))
 		retval = generic_interrupt(irq, musb);
 
+#ifndef CONFIG_USB_MUSB_PIO_ONLY
+	if (l1_ints & DMA_INT_STATUS)
+		retval = dma_controller_irq(irq, musb->dma_controller);
+#endif
+
 	return retval;
 }
 
@@ -147,6 +157,13 @@ int mtk_musb_platform_init(struct musb *musb)
 	/* unmask irq */
 	musb_writel(musb->mregs,
 		USB_L1INTM, TX_INT_STATUS | RX_INT_STATUS | USBCOM_INT_STATUS | DMA_INT_STATUS);
+
+#ifndef CONFIG_USB_MUSB_PIO_ONLY
+	/* Configure DMA interrupt mask */
+	musb_writel(musb->mregs, MUSB_HSDMA_INTR,
+		    DMA_INTR_STATUS_MSK | DMA_INTR_UNMASK_SET_MSK);
+#endif
+
 	/* Set TX/RX toggle enable */
 	musb_writew(musb->mregs, MUSB_TXTOGEN, MTK_TOGGLE_EN);
 	musb_writew(musb->mregs, MUSB_RXTOGEN, MTK_TOGGLE_EN);
@@ -227,6 +244,11 @@ static const struct musb_platform_ops mtk_musb_ops = {
 	.disable = mtk_musb_disable,
 	.init = mtk_musb_platform_init,
 	.exit = mtk_musb_platform_exit,
+	.quirks = MUSB_DMA_INVENTRA,
+#ifndef CONFIG_USB_MUSB_PIO_ONLY
+	.dma_init = musbhs_dma_controller_create_noirq,
+	.dma_exit = musbhs_dma_controller_destroy,
+#endif
 };
 
 static int mtk_musb_probe(struct udevice *dev)
