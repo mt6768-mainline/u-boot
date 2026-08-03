@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0+
+menuconfig SOC_MTK
+	bool "MediaTek SoC drivers support"
+	depends on ARCH_MEDIATEK
+	help
+	  Say Y here if you want to enable MediaTek SoC driver support.
+
+if SOC_MTK
+
+config MTK_MMSYS
+	bool "MediaTek MMSYS"
+	select MEMORY
+	help
+	  Say Y here if you want to enable MediaTek MultiMedia subSYStem
+	  support.
+
+endif
