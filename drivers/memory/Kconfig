@@ -20,6 +20,13 @@ config ATMEL_EBI
 	  driver. Doesn't provide an access to EBI controller. Select
 	  this option to enable the NAND flash controller driver
 
+config MTK_SMI
+	bool "MediaTek Smart Memory Interface"
+	depends on ARCH_MEDIATEK && TARGET_MT6572
+	help
+	  This driver enables support for MediaTek SMI common and LARB,
+	  required for the display support.
+
 config SANDBOX_MEMORY
 	bool "Enable Sandbox Memory Controller driver"
 	depends on SANDBOX && MEMORY
