@@ -14,4 +14,10 @@ config MTK_MMSYS
 	  Say Y here if you want to enable MediaTek MultiMedia subSYStem
 	  support.
 
+config MTK_MUTEX
+	bool "MediaTek MUTE-X"
+	select MISC
+	help
+	  Say Y here if you want to enable MediaTek MUTE-X support.
+
 endif
