@@ -792,6 +792,14 @@ config VIDEO_LCD_SPI_MISO
 
 source "drivers/video/meson/Kconfig"
 
+config VIDEO_MTK
+	bool "Enable video support on MediaTek SoCs"
+	depends on ARCH_MEDIATEK
+	depends on MTK_MMSYS
+	depends on PHY_MTK_MIPI_DSI
+	help
+	  Enable display pipeline support for MediaTek SoCs.
+
 config VIDEO_MVEBU
 	bool "Armada XP LCD controller"
 	depends on ARCH_MVEBU
