@@ -17,6 +17,7 @@
 #include "mtk_disp_ovl.h"
 #include "mtk_disp_rdma.h"
 #include "mtk_disp_color.h"
+#include "mtk_disp_ddp.h"
 
 struct mtk_ddp_comp_funcs {
 	void (*config)(struct udevice *dev, struct display_timing *timing);
@@ -55,12 +56,41 @@ static const struct mtk_ddp_comp_funcs ddp_color = {
 	.start = mtk_color_start,
 };
 
+static const struct mtk_ddp_comp_funcs ddp_ccorr = {
+	.config = mtk_ccorr_config,
+	.start = mtk_ccorr_start,
+};
+
+static const struct mtk_ddp_comp_funcs ddp_aal = {
+	.config = mtk_aal_config,
+	.start = mtk_aal_start,
+};
+
+static const struct mtk_ddp_comp_funcs ddp_gamma = {
+	.config = mtk_gamma_config,
+	.start = mtk_gamma_start,
+};
+
+static const struct mtk_ddp_comp_funcs ddp_dither = {
+	.config = mtk_dither_config,
+	.start = mtk_dither_start,
+};
+
+static const struct mtk_ddp_comp_funcs ddp_ufoe = {
+	.start = mtk_ufoe_start,
+};
+
 static const struct mtk_ddp_match mtk_ddp_matches[] = {
 	{ "mediatek,mt6572-disp-ovl",	UCLASS_MISC, DDP_COMPONENT_OVL0, &ddp_ovl },
 	{ "mediatek,mt6572-disp-rdma",	UCLASS_MISC, DDP_COMPONENT_RDMA0, &ddp_rdma },
 	{ "mediatek,mt2701-disp-color",	UCLASS_MISC, DDP_COMPONENT_COLOR0, &ddp_color },
 	{ "mediatek,mt2701-disp-pwm",	UCLASS_MISC, DDP_COMPONENT_BLS, NULL },
 	{ "mediatek,mt6572-dsi",	UCLASS_DSI_HOST, DDP_COMPONENT_DSI0, NULL },
+	{ "mediatek,mt8192-disp-ccorr",	UCLASS_MISC, DDP_COMPONENT_CCORR, &ddp_ccorr },
+	{ "mediatek,mt8183-disp-aal",	UCLASS_MISC, DDP_COMPONENT_AAL0, &ddp_aal },
+	{ "mediatek,mt8163-disp-gamma",	UCLASS_MISC, DDP_COMPONENT_GAMMA, &ddp_gamma },
+	{ "mediatek,mt8183-disp-dither",UCLASS_MISC, DDP_COMPONENT_DITHER0, &ddp_dither },
+	{ "mediatek,mt8173-disp-ufoe",	UCLASS_MISC, DDP_COMPONENT_UFOE, &ddp_ufoe },
 };
 
 static const struct mtk_ddp_match *mtk_disp_find_match(ofnode node)
