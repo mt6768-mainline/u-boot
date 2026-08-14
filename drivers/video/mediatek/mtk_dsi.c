@@ -783,7 +783,7 @@ static ssize_t mtk_dsi_host_transfer(struct mipi_dsi_host *host, const struct mi
 	}
 
 	if (MTK_DSI_HOST_IS_READ(msg->type))
-		irq_flag |= LPRX_RD_RDY_INT_FLAG;
+		irq_flag = LPRX_RD_RDY_INT_FLAG;
 
 	mtk_dsi_lane_ready(dsi);
 
@@ -795,6 +795,9 @@ static ssize_t mtk_dsi_host_transfer(struct mipi_dsi_host *host, const struct mi
 		recv_cnt = 0;
 		goto restore_dsi_mode;
 	}
+
+	/* clear CMD_DONE_INT_FLAG here since we didn't poll for it. */
+	mtk_dsi_mask(dsi, DSI_INTSTA, CMD_DONE_INT_FLAG, 0);
 
 	if (!msg->rx_buf) {
 		dev_err(dsi->dev, "dsi receive buffer size may be NULL\n");
