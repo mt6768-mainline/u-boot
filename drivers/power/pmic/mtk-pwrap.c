@@ -25,6 +25,8 @@ static const struct pmic_child_info mt6357_pmic_children_info[] = {
 };
 
 static const struct pmic_child_info mt6358_pmic_children_info[] = {
+	{ .prefix = "buck", .driver = MT6358_REGULATOR_DRIVER },
+	{ .prefix = "ldo", .driver = MT6358_REGULATOR_DRIVER },
 	{ .prefix = "v", .driver = MT6358_REGULATOR_DRIVER },
 	{ }
 };
@@ -42,6 +44,7 @@ static const struct pmic_child_info mt6359_pmic_children_info[] = {
 #define PWRAP_STATE_SYNC_IDLE0		BIT(20)
 #define PWRAP_STATE_INIT_DONE0		BIT(21)
 #define PWRAP_STATE_INIT_DONE1		BIT(15)
+#define PWRAP_STATE_INIT_DONE0_V2	BIT(22)
 
 /* macro for WACS FSM */
 #define PWRAP_WACS_FSM_IDLE		0x00
@@ -162,6 +165,7 @@ static const u32 mt6358_regs[] = {
 	[PWRAP_DEW_CIPHER_RDY] =	0x0420,
 	[PWRAP_DEW_CIPHER_MODE] =	0x0422,
 	[PWRAP_DEW_CIPHER_SWRST] =	0x0424,
+	[PWRAP_DEW_RDDMY_NO] =		0x0426,
 	[PWRAP_RG_SPI_CON2] =		0x0432,
 	[PWRAP_RG_SPI_CON3] =		0x0434,
 	[PWRAP_RG_SPI_CON4] =		0x0436,
@@ -282,6 +286,56 @@ enum pwrap_regs {
 	PWRAP_INT1_FLG,
 	PWRAP_INT1_CLR,
 	PWRAP_WDT_SRC_EN_1,
+
+	/* MT8186 only regs */
+	PWRAP_RDDMY,
+};
+
+static int mt8186_regs[] = {
+	[PWRAP_MUX_SEL] =		0x0,
+	[PWRAP_WRAP_EN] =		0x4,
+	[PWRAP_DIO_EN] =		0x8,
+	[PWRAP_RDDMY] =			0x20,
+	[PWRAP_CSHEXT_WRITE] =		0x24,
+	[PWRAP_CSHEXT_READ] =		0x28,
+	[PWRAP_CSLEXT_START] =		0x2C,
+	[PWRAP_CSLEXT_END] =		0x30,
+	[PWRAP_STAUPD_PRD] =		0x3C,
+	[PWRAP_STAUPD_GRPEN] =		0x40,
+	[PWRAP_EINT_STA0_ADR] =		0x44,
+	[PWRAP_EINT_STA1_ADR] =		0x48,
+	[PWRAP_HIPRIO_ARB_EN] =		0x6C,
+	[PWRAP_MAN_EN] =		0x7C,
+	[PWRAP_MAN_CMD] =		0x80,
+	[PWRAP_WACS0_EN] =		0x8C,
+	[PWRAP_INIT_DONE0] =		0x90,
+	[PWRAP_WACS1_EN] =		0x94,
+	[PWRAP_INIT_DONE1] =		0x98,
+	[PWRAP_WACS2_EN] =		0x9C,
+	[PWRAP_INIT_DONE2] =		0xA0,
+	[PWRAP_INT_EN] =		0xBC,
+	[PWRAP_INT_FLG_RAW] =		0xC0,
+	[PWRAP_INT_FLG] =		0xC4,
+	[PWRAP_INT_CLR] =		0xC8,
+	[PWRAP_INT1_EN] =		0xCC,
+	[PWRAP_INT1_FLG] =		0xD4,
+	[PWRAP_INT1_CLR] =		0xD8,
+	[PWRAP_TIMER_EN] =		0xF0,
+	[PWRAP_WDT_UNIT] =		0xF8,
+	[PWRAP_WDT_SRC_EN] =		0xFC,
+	[PWRAP_WDT_SRC_EN_1] =		0x100,
+	[PWRAP_WDT_FLG] =		0x104,
+	[PWRAP_DCM_EN] =		0x1EC,
+	[PWRAP_DCM_DBC_PRD] =		0x1F0,
+	[PWRAP_WACS0_CMD] =		0xC00,
+	[PWRAP_WACS0_RDATA] =		0xC04,
+	[PWRAP_WACS0_VLDCLR] =		0xC08,
+	[PWRAP_WACS1_CMD] =		0xC10,
+	[PWRAP_WACS1_RDATA] =		0xC14,
+	[PWRAP_WACS1_VLDCLR] =		0xC18,
+	[PWRAP_WACS2_CMD] =		0xC20,
+	[PWRAP_WACS2_RDATA] =		0xC24,
+	[PWRAP_WACS2_VLDCLR] =		0xC28,
 };
 
 static int mt8195_regs[] = {
@@ -386,6 +440,8 @@ struct pmic_wrapper_type {
 	u32 wdt_src;
 	/* Flags indicating the capability for the target pwrap */
 	u32 caps;
+	u32 init_done;
+	int (*init_reg_clock)(struct pmic_wrapper *wrp);
 };
 
 static u32 pwrap_readl(struct pmic_wrapper *wrp, enum pwrap_regs reg)
@@ -608,6 +664,23 @@ static int pwrap_init_dual_io(struct pmic_wrapper *wrp)
 	return 0;
 }
 
+static int mt8186_init_reg_clock(struct pmic_wrapper *wrp)
+{
+	int ret;
+
+	pwrap_writel(wrp, 0x8, PWRAP_RDDMY);
+	ret = pwrap_write(wrp, wrp->slave->dew_regs[PWRAP_DEW_RDDMY_NO], 0x8);
+	if (ret)
+		return ret;
+
+	pwrap_writel(wrp, 0x88, PWRAP_CSHEXT_WRITE);
+	pwrap_writel(wrp, 0x55, PWRAP_CSHEXT_READ);
+	pwrap_writel(wrp, 3, PWRAP_CSLEXT_START);
+	pwrap_writel(wrp, 0, PWRAP_CSLEXT_END);
+
+	return 0;
+}
+
 static int pwrap_init(struct pmic_wrapper *wrp)
 {
 	int ret;
@@ -624,6 +697,12 @@ static int pwrap_init(struct pmic_wrapper *wrp)
 	pwrap_writel(wrp, wrp->master->arb_en_all, PWRAP_HIPRIO_ARB_EN);
 
 	pwrap_writel(wrp, 1, PWRAP_WACS2_EN);
+
+	if (wrp->master->init_reg_clock) {
+		ret = wrp->master->init_reg_clock(wrp);
+		if (ret)
+			return ret;
+	}
 
 	/* Setup serial input delay */
 	if (HAS_CAP(wrp->slave->caps, PWRAP_SLV_CAP_SPI)) {
@@ -670,6 +749,7 @@ static const struct pwrap_slv_type pmic_mt6359 = {
 
 static const struct udevice_id mtk_pmic_ids[] = {
 	{ .compatible = "mediatek,mt6357", .data = (ulong)&pmic_mt6357 },
+	{ .compatible = "mediatek,mt6358", .data = (ulong)&pmic_mt6358 },
 	{ .compatible = "mediatek,mt6359", .data = (ulong)&pmic_mt6359 },
 	/*
 	 * REVISIT: Cooresponding regulator driver only supports MT6366 for
@@ -773,7 +853,9 @@ static int mtk_pwrap_probe(struct udevice *dev)
 		}
 	}
 
-	if (HAS_CAP(wrp->master->caps, PWRAP_CAP_ARB))
+	if (wrp->master->init_done)
+		mask_done = wrp->master->init_done;
+	else if (HAS_CAP(wrp->master->caps, PWRAP_CAP_ARB))
 		mask_done = PWRAP_STATE_INIT_DONE1;
 	else
 		mask_done = PWRAP_STATE_INIT_DONE0;
@@ -868,6 +950,16 @@ static struct dm_pmic_ops mtk_pwrap_ops = {
 	.write = mtk_pwrap_write,
 };
 
+static const struct pmic_wrapper_type pwrap_mt6768 = {
+	.regs = mt8186_regs,
+	.arb_en_all = 0xfb27f,
+	.spi_w = PWRAP_MAN_CMD_SPI_WRITE,
+	.wdt_src = PWRAP_WDT_SRC_MASK_ALL,
+	.caps = PWRAP_CAP_INIT,
+	.init_done = PWRAP_STATE_INIT_DONE0_V2,
+	.init_reg_clock = mt8186_init_reg_clock,
+};
+
 static const struct pmic_wrapper_type pwrap_mt8195 = {
 	.regs = mt8195_regs,
 	.arb_en_all = 0x777f, /* NEED CONFIRM */
@@ -885,6 +977,7 @@ static const struct pmic_wrapper_type pwrap_mt8365 = {
 };
 
 static const struct udevice_id mtk_pwrap_ids[] = {
+	{ .compatible = "mediatek,mt6768-pwrap", .data = (ulong)&pwrap_mt6768 },
 	{ .compatible = "mediatek,mt8195-pwrap", .data = (ulong)&pwrap_mt8195 },
 	{ .compatible = "mediatek,mt8365-pwrap", .data = (ulong)&pwrap_mt8365 },
 	{ .compatible = "mediatek,mt8366-pwrap", .data = (ulong)&pwrap_mt8195 },
