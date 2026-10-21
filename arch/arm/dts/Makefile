@@ -1045,6 +1045,10 @@ dtb-$(CONFIG_SOC_K3_AM62D2) += k3-am62d2-r5-evm.dtb
 dtb-$(CONFIG_SOC_K3_AM62P5) += k3-am62p5-r5-sk.dtb \
 			       k3-am62p5-verdin-r5.dtb
 
+mt6768-xiaomi-merlin-nt36672a-ktd3137-dtbs := mt6768-xiaomi-merlin.dtb \
+	mt6768-xiaomi-merlin-nt36672a.dtbo \
+	mt6768-xiaomi-merlin-ktd3137.dtbo
+
 mt8371-genio-520-evk-edp-dtbs := mt8371-genio-520-evk.dtb mt8371-genio-common-edp.dtbo
 mt8371-genio-520-evk-ufs-dtbs := mt8371-genio-520-evk.dtb mt8371-genio-common-ufs.dtbo
 mt8371-genio-520-evk-ufs-edp-dtbs := mt8371-genio-520-evk.dtb \
@@ -1057,6 +1061,7 @@ mt8391-genio-720-evk-ufs-edp-dtbs := mt8391-genio-720-evk.dtb \
 				     mt8371-genio-common-edp.dtbo
 
 dtb-$(CONFIG_ARCH_MEDIATEK) += \
+	mt6768-xiaomi-merlin-nt36672a-ktd3137.dtb \
 	mt7622-rfb.dtb \
 	mt7623a-unielec-u7623-02-emmc.dtb \
 	mt7622-bananapi-bpi-r64.dtb \
