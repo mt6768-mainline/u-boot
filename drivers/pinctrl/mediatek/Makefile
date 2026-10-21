@@ -3,6 +3,7 @@
 obj-y += pinctrl-mtk-common.o
 
 # SoC Drivers
+obj-$(CONFIG_TARGET_MT6768) += pinctrl-mt6768.o
 obj-$(CONFIG_TARGET_MT7622) += pinctrl-mt7622.o
 obj-$(CONFIG_TARGET_MT7623) += pinctrl-mt7623.o
 obj-$(CONFIG_TARGET_MT7629) += pinctrl-mt7629.o
