@@ -18,9 +18,11 @@
 #include <asm/system.h>
 #include <dm/uclass.h>
 #include <env.h>
+#include <linux/bitops.h>
 #include <linux/kernel.h>
 #include <linux/sizes.h>
 #include <linux/string.h>
+#include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -281,6 +283,35 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 void reset_cpu(void)
 {
 	psci_system_reset();
+}
+
+#define APMIXEDSYS_BASE		0x1000c000
+#define AP_PLL_CON3		0x0c
+#define PLLON_CON0		0x44
+#define PLLON_CON1		0x48
+
+#define INFRACFG_AO_BASE	0x10001000
+#define PERI_BUS_DCM_CTRL	0x074
+#define INFRA_CG1		BIT(2)
+#define INFRA_TOPAXI_SI0_CTL	0x200
+#define INFRA_CG0		BIT(31)
+
+int mach_cpu_init(void)
+{
+	void __iomem *apmixed = (void __iomem *)APMIXEDSYS_BASE;
+	void __iomem *infracfg = (void __iomem *)INFRACFG_AO_BASE;
+
+	/* MPLL, ARM/CCIPLLs, MAINPLL set to HW mode, TDCLKSQ, CLKSQ1 */
+	clrsetbits_le32(apmixed + AP_PLL_CON3, 0x1e, 0);
+	clrsetbits_le32(apmixed + PLLON_CON0, ~0x01041041, 0);
+	clrsetbits_le32(apmixed + PLLON_CON1, ~0x01041041, 0);
+
+	/* Disable TOPAXI protection */
+	setbits_le32(infracfg + INFRA_TOPAXI_SI0_CTL, INFRA_CG0);
+	/* Disable DCM */
+	clrbits_le32(infracfg + PERI_BUS_DCM_CTRL, INFRA_CG1);
+
+	return 0;
 }
 
 int print_cpuinfo(void)
