@@ -169,6 +169,9 @@
 /* EMMC50_CFG0 */
 #define EMMC50_CFG_CFCSTS_SEL		BIT(4)
 
+/* EMMC50_CFG3 */
+#define EMMC50_CFG3_OUTS_WR		GENMASK(4, 0)
+
 /* SDC_FIFO_CFG */
 #define SDC_FIFO_CFG_WRVALIDSEL		BIT(24)
 #define SDC_FIFO_CFG_RDVALIDSEL		BIT(25)
@@ -278,7 +281,9 @@ struct mtk_sd_regs {
 	u32 pad_cmd_tune;
 	u32 reserved7[30];
 	u32 emmc50_cfg0;
-	u32 reserved8[7];
+	u32 reserved8[5];
+	u32 emmc50_cfg3;
+	u32 reserved9;
 	u32 sdc_fifo_cfg;
 };
 
@@ -359,6 +364,7 @@ struct msdc_host {
 	u32 latch_ck;
 	u32 r_smpl;		/* sample edge */
 	bool hs400_mode;
+	bool uhs_pins;
 
 	/* whether to use gpio detection or built-in hw detection */
 	bool builtin_cd;
@@ -1048,6 +1054,18 @@ static int msdc_ops_set_ios(struct udevice *dev)
 	struct mmc *mmc = &plat->mmc;
 	uint clock = mmc->clock;
 
+	if (IS_ENABLED(CONFIG_PINCTRL)) {
+		bool uhs = mmc->signal_voltage == MMC_SIGNAL_VOLTAGE_180;
+
+		if (uhs != host->uhs_pins) {
+			if (pinctrl_select_state(dev, uhs ? "state_uhs" :
+						 "default"))
+				dev_dbg(dev, "failed to select %s pinctrl state\n",
+					uhs ? "state_uhs" : "default");
+			host->uhs_pins = uhs;
+		}
+	}
+
 	msdc_set_buswidth(host, mmc->bus_width);
 
 	if (mmc->clk_disable)
@@ -1487,12 +1505,35 @@ skip_fall:
 	return final_delay == 0xff ? -EIO : 0;
 }
 
+static void msdc_prepare_hs400(struct msdc_host *host)
+{
+	host->hs400_mode = true;
+
+	if (host->hs400_ds_delay) {
+		if (host->top_base)
+			writel(host->hs400_ds_delay,
+			       &host->top_base->emmc50_pad_ds_tune);
+		else
+			writel(host->hs400_ds_delay,
+			       &host->base->pad_ds_tune);
+	}
+
+	/* HS400 requires CRC status from the data lines to be disabled */
+	clrbits_le32(&host->base->patch_bit2, MSDC_PB2_CFGCRCSTS);
+	/* Improve read performance by allowing two outstanding writes */
+	clrsetbits_le32(&host->base->emmc50_cfg3, EMMC50_CFG3_OUTS_WR,
+			FIELD_PREP(EMMC50_CFG3_OUTS_WR, 2));
+}
+
 static int msdc_execute_tuning(struct udevice *dev, uint opcode)
 {
 	struct msdc_plat *plat = dev_get_plat(dev);
 	struct msdc_host *host = dev_get_priv(dev);
 	struct mmc *mmc = &plat->mmc;
 	int ret = 0;
+
+	if (mmc->hs400_tuning || mmc->selected_mode == MMC_HS_400)
+		msdc_prepare_hs400(host);
 
 	if (host->dev_comp->data_tune && host->dev_comp->async_fifo) {
 		ret = msdc_tune_together(dev, opcode);
@@ -1501,17 +1542,15 @@ static int msdc_execute_tuning(struct udevice *dev, uint opcode)
 			return ret;
 		}
 
-		if (mmc->selected_mode == MMC_HS_400) {
+		if (mmc->hs400_tuning || mmc->selected_mode == MMC_HS_400) {
+			/*
+			 * HS400 samples data on the strobe rising edge and
+			 * uses the DS pin delay, so the HS200 data delay must
+			 * not be left enabled.
+			 */
 			clrbits_le32(&host->base->msdc_iocon,
 				     MSDC_IOCON_DSPL | MSDC_IOCON_W_DSPL);
-			clrsetbits_le32(&host->base->pad_tune,
-					MSDC_PAD_TUNE_DATRRDLY, 0);
-
-			writel(host->hs400_ds_delay, &host->base->pad_ds_tune);
-			/* for hs400 mode it must be set to 0 */
-			clrbits_le32(&host->base->patch_bit2,
-				     MSDC_PB2_CFGCRCSTS);
-			host->hs400_mode = true;
+			msdc_set_data_delay(host, 0);
 		}
 		goto tune_done;
 	}
@@ -1539,6 +1578,15 @@ tune_done:
 	host->saved_tune_para.pad_cmd_tune = readl(&host->base->pad_cmd_tune);
 
 	return ret;
+}
+
+static int msdc_ops_hs400_prepare_ddr(struct udevice *dev)
+{
+	struct msdc_host *host = dev_get_priv(dev);
+
+	msdc_prepare_hs400(host);
+
+	return 0;
 }
 #endif
 
@@ -1872,6 +1920,7 @@ static const struct dm_mmc_ops msdc_ops = {
 	.get_wp = msdc_ops_get_wp,
 #if CONFIG_IS_ENABLED(MMC_SUPPORTS_TUNING)
 	.execute_tuning = msdc_execute_tuning,
+	.hs400_prepare_ddr = msdc_ops_hs400_prepare_ddr,
 #endif
 	.wait_dat0 = msdc_ops_wait_dat0,
 };
