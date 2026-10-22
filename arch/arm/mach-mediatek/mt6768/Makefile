@@ -2,3 +2,4 @@
 
 obj-y += init.o
 obj-y += board.o
+obj-y += memory.o preloader.o

@@ -24,20 +24,16 @@
 #include <linux/string.h>
 #include <asm/io.h>
 
+#include "memory.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
-#define MT6768_MAX_RMEM		32
+static bool mt6768_from_lk __section(".data");
 
-struct memory_bank {
-	phys_addr_t addr;
-	phys_size_t size;
-};
-
-static struct memory_bank mt6768_banks[CONFIG_NR_DRAM_BANKS] __section(".data");
-static int mt6768_n_banks __section(".data") = 0;
-static struct memory_bank mt6768_reserved_memory[MT6768_MAX_RMEM] __section(".data");
-static const char * mt6768_reserved_memory_names[MT6768_MAX_RMEM] __section(".data");
-static int mt6768_n_reserved __section(".data") = 0;
+#define mt6768_banks		mt6768_memory.banks
+#define mt6768_n_banks		mt6768_memory.n_banks
+#define mt6768_reserved_memory	mt6768_memory.reserved
+#define mt6768_n_reserved		mt6768_memory.n_reserved
 
 static int mt6768_parse_lk_memory(const void *prev)
 {
@@ -71,6 +67,8 @@ static int mt6768_parse_reserved(const void *prev)
 {
 	int node;
 	int reserved_memory = fdt_path_offset(prev, "/reserved-memory");
+	if (reserved_memory == -FDT_ERR_NOTFOUND)
+		return 0;
 	if (reserved_memory < 0)
 		return log_ret(reserved_memory);
 
@@ -78,10 +76,8 @@ static int mt6768_parse_reserved(const void *prev)
 		const char *name = fdt_get_name(prev, node, NULL);
 		fdt_size_t size;
 
-		if (mt6768_n_reserved == MT6768_MAX_RMEM) {
-			log_warning("too many reserved memory nodes\n");
-			return 0;
-		}
+		if (mt6768_n_reserved == MT6768_MAX_RMEM)
+			return log_ret(-ENOSPC);
 
 		fdt_addr_t addr = fdtdec_get_addr_size_auto_parent(prev, reserved_memory, node,
 								   "reg", 0, &size, false);
@@ -92,7 +88,11 @@ static int mt6768_parse_reserved(const void *prev)
 
 		mt6768_reserved_memory[mt6768_n_reserved].addr = addr;
 		mt6768_reserved_memory[mt6768_n_reserved].size = size;
-		mt6768_reserved_memory_names[mt6768_n_reserved] = name;
+		if (addr + size < addr)
+			return log_ret(-EINVAL);
+
+		strlcpy(mt6768_reserved_memory[mt6768_n_reserved].name, name,
+			sizeof(mt6768_reserved_memory[mt6768_n_reserved].name));
 		mt6768_n_reserved++;
 
 		log_debug("add reserved memory node %s @ 0x%llx (0x%llx)\n", name, addr, size);
@@ -127,10 +127,12 @@ static int mt6768_reserve_memory(void *fdt)
 		if (ret)
 			return log_ret(ret);
 	}
-
+	if (fdt_address_cells(fdt, reserved_memory) != 2 ||
+	    fdt_size_cells(fdt, reserved_memory) != 2)
+		return log_ret(-EINVAL);
 
 	for (int i = 0; i < mt6768_n_reserved; i++) {
-		int node = fdt_add_subnode(fdt, reserved_memory, mt6768_reserved_memory_names[i]);
+		int node = fdt_add_subnode(fdt, reserved_memory, mt6768_reserved_memory[i].name);
 		if (node == -FDT_ERR_EXISTS)
 			continue;
 		else if (node < 0)
@@ -150,7 +152,7 @@ static int mt6768_reserve_memory(void *fdt)
 			return log_ret(ret);
 
 		log_debug("added %s reserved memory node @ 0x%llx (0x%llx)\n",
-			  mt6768_reserved_memory_names[i], mt6768_reserved_memory[i].addr,
+			  mt6768_reserved_memory[i].name, mt6768_reserved_memory[i].addr,
 			  mt6768_reserved_memory[i].size);
 	}
 
@@ -193,7 +195,19 @@ int dram_init(void)
 	phys_addr_t base = 0;
 	int ret;
 
-	ret = mt6768_parse_lk_memory(prev);
+	memset(&mt6768_memory, 0, sizeof(mt6768_memory));
+
+	if ((ulong)prev >= CONFIG_MTK_MEM_MAP_DDR_BASE_PHY &&
+	    (ulong)prev < CONFIG_MTK_MEM_MAP_DDR_BASE_PHY + CONFIG_MTK_MEM_MAP_DDR_SIZE &&
+	    !fdt_check_header(prev)) {
+		mt6768_from_lk = true;
+		ret = mt6768_parse_lk_memory(prev);
+		if (!ret)
+			ret = mt6768_parse_reserved(prev);
+	} else {
+		mt6768_from_lk = false;
+		ret = mt6768_load_bootargs(prev);
+	}
 	if (ret)
 		return log_ret(ret);
 
@@ -207,17 +221,17 @@ int dram_init(void)
 	gd->ram_base = (unsigned long)base;
 	gd->ram_size = total;
 
-	return log_ret(mt6768_parse_reserved(prev));
+	return 0;
 }
 
 int dram_init_banksize(void)
 {
-	if (mt6768_n_banks <= 0)
-		return -EINVAL;
-	
 	u64 start[CONFIG_NR_DRAM_BANKS];
 	u64 size[CONFIG_NR_DRAM_BANKS];
 	int ret, i;
+
+	if (!mt6768_n_banks)
+		return -EINVAL;
 
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		if (i < mt6768_n_banks) {
@@ -233,13 +247,7 @@ int dram_init_banksize(void)
 		}
 
 	mt6768_fix_mem_map();
-
-
 	ret = fdt_fixup_memory_banks((void *)gd->fdt_blob, start, size, mt6768_n_banks);
-	if (ret)
-		return log_ret(ret);
-
-	ret = mt6768_reserve_memory((void *)gd->fdt_blob);
 	if (ret)
 		return log_ret(ret);
 
@@ -276,7 +284,7 @@ int ft_system_setup(void *blob, struct bd_info *bd)
 	ret = fdt_fixup_memory_banks(blob, start, size, banks);
 	if (ret)
 		return log_ret(ret);
-	
+
 	return mt6768_reserve_memory(blob);
 }
 

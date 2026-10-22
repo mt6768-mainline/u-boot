@@ -13,9 +13,11 @@ config TARGET_MT6768
 	bool "MediaTek MT6768 SoC"
 	select ARM64
 	select LINUX_KERNEL_IMAGE_HEADER
+	select LMB_ARCH_MEM_MAP
 	select LMB_LIMIT_DMA_BELOW_RAM_TOP
 	select MISC_INIT_R
 	select OF_SYSTEM_SETUP
+	select SAVE_PREV_BL_FDT_ADDR
 	help
 	  The MediaTek MT6768 is a ARM64-based SoC with a dual-core Cortex-A75 and
 	  a hexa-core Cortex-A55. It is including UART, SPI, USB2.0 dual role,
