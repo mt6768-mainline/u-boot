@@ -9,6 +9,7 @@
 #include <fdtdec.h>
 #include <regmap.h>
 #include <syscon.h>
+#include <power/regulator.h>
 #include <asm/io.h>
 #include <linux/delay.h>
 #include <linux/err.h>
@@ -69,6 +70,9 @@ static int _scpsys_bus_protect_set(struct mtk_scpsys *scpsys,
 	u32 val = 0, mask = bpd->bus_prot_mask;
 	u32 sta_mask = bpd->bus_prot_sta_mask;
 
+	if (!reg)
+		return -ENOENT;
+
 	if (bpd->bus_prot_reg_update)
 		clrsetbits_le32(reg + bpd->bus_prot_set, mask, mask);
 	else
@@ -96,6 +100,9 @@ static int _scpsys_bus_protect_clear(struct mtk_scpsys *scpsys,
 	 */
 	expected_ack = bpd->bus_prot_sta_block == BUS_PROT_BLOCK_INFRA_NAO ?
 		       sta_mask : 0;
+
+	if (!reg)
+		return -ENOENT;
 
 	if (bpd->bus_prot_reg_update)
 		clrbits_le32(reg + bpd->bus_prot_clr, mask);
@@ -203,9 +210,15 @@ static int mtk_scpsys_power_on(struct power_domain *power_domain)
 			return ret;
 	}
 
+	if (domain->supply) {
+		ret = regulator_set_enable_if_allowed(domain->supply, true);
+		if (ret)
+			goto err_parent;
+	}
+
 	ret = clk_enable_bulk(&domain->clks);
 	if (ret)
-		return ret;
+		goto err_supply;
 
 	writel(SPM_EN, scpsys->base);
 
@@ -219,7 +232,7 @@ static int mtk_scpsys_power_on(struct power_domain *power_domain)
 	ret = readx_poll_timeout(mtk_scpsys_domain_is_on, power_domain, tmp, tmp > 0,
 				 100);
 	if (ret < 0)
-		return ret;
+		goto err_clocks;
 
 	val &= ~PWR_CLK_DIS_BIT;
 	writel(val, ctl_addr);
@@ -236,7 +249,7 @@ static int mtk_scpsys_power_on(struct power_domain *power_domain)
 	 */
 	ret = scpsys_bus_protect_disable(scpsys, domain, true);
 	if (ret < 0)
-		return ret;
+		goto err_clocks;
 
 	/*
 	 * On domains with a stricter bus protection policy, the subsys clocks
@@ -279,11 +292,11 @@ static int mtk_scpsys_power_on(struct power_domain *power_domain)
 		ret = mtk_infracfg_clear_bus_protection(infracfg,
 							data->bus_prot_mask);
 		if (ret)
-			return ret;
+			goto err_subsys_clocks;
 	}
 	ret = scpsys_bus_protect_disable(scpsys, domain, false);
 	if (ret < 0)
-		return ret;
+		goto err_subsys_clocks;
 
 	if (data->caps & MTK_SCPD_STRICT_BUS_PROTECTION) {
 		ret = clk_enable_bulk(&domain->subsys_clks);
@@ -292,6 +305,18 @@ static int mtk_scpsys_power_on(struct power_domain *power_domain)
 	}
 
 	return 0;
+
+err_subsys_clocks:
+	clk_disable_bulk(&domain->subsys_clks);
+err_clocks:
+	clk_disable_bulk(&domain->clks);
+err_supply:
+	if (domain->supply)
+		regulator_set_enable_if_allowed(domain->supply, false);
+err_parent:
+	if (domain->has_pd)
+		power_domain_off(&domain->parent_pd);
+	return ret;
 }
 
 static int mtk_scpsys_power_off(struct power_domain *power_domain)
@@ -383,6 +408,15 @@ static int mtk_scpsys_power_off(struct power_domain *power_domain)
 	if (ret)
 		return ret;
 
+	if (domain->supply) {
+		ret = regulator_set_enable_if_allowed(domain->supply, false);
+		if (ret)
+			return ret;
+	}
+
+	if (domain->has_pd)
+		return power_domain_off(&domain->parent_pd);
+
 	return 0;
 }
 
@@ -455,7 +489,6 @@ static int mtk_scpsys_add_one_domain(struct udevice *dev, ofnode node, int paren
 	}
 
 	domain = &scpsys->domains[id];
-	domain->data = &scpsys->soc_data->data[id];
 
 	if (parent_id >= 0) {
 		domain->has_pd = true;
@@ -515,7 +548,7 @@ static int mtk_scpsys_add_one_domain(struct udevice *dev, ofnode node, int paren
 	 * level while still catching a DT/driver mismatch early.
 	 */
 	for (i = 0; i < SPM_MAX_BUS_PROT_DATA; i++) {
-		const struct mtk_scpsys_bus_prot_data *bpd = &domain->data->bp_cfg[i];
+		const struct mtk_scpsys_bus_prot_data *bpd = &scpsys->soc_data->data[id].bp_cfg[i];
 
 		if (!bpd->bus_prot_mask)
 			continue;
@@ -532,6 +565,20 @@ static int mtk_scpsys_add_one_domain(struct udevice *dev, ofnode node, int paren
 			dev_err(dev, "%s: missing mediatek,smi\n", ofnode_get_name(node));
 			return -EINVAL;
 		}
+	}
+
+	if (scpsys->soc_data->data[id].domain_supply &&
+	    ofnode_read_bool(node, "domain-supply")) {
+		if (!CONFIG_IS_ENABLED(DM_REGULATOR))
+			return -ENOSYS;
+
+		ret = ofnode_parse_phandle_with_args(node, "domain-supply", NULL, 0, 0, &args);
+		if (ret)
+			return ret;
+
+		ret = uclass_get_device_by_ofnode(UCLASS_REGULATOR, args.node, &domain->supply);
+		if (ret)
+			return ret;
 	}
 
 	num_clks = ofnode_read_string_count(node, "clock-names");
@@ -583,6 +630,7 @@ static int mtk_scpsys_add_one_domain(struct udevice *dev, ofnode node, int paren
 		}
 	}
 
+	domain->data = &scpsys->soc_data->data[id];
 	return 0;
 
 err_put_subsys_clocks:
@@ -625,6 +673,7 @@ static int mtk_scpsys_add_subdomain(struct udevice *dev, ofnode node)
 
 int mtk_power_controller_probe(struct udevice *dev)
 {
+	struct power_domain_plat *plat = dev_get_uclass_plat(dev);
 	struct mtk_scpsys *scpsys = dev_get_priv(dev);
 	ofnode subnode;
 	int ret;
@@ -656,10 +705,23 @@ int mtk_power_controller_probe(struct udevice *dev)
 		}
 	}
 
+	plat->subdomains = scpsys->soc_data->num_domains;
+	return 0;
+}
+
+static int mtk_scpsys_request(struct power_domain *power_domain)
+{
+	struct mtk_scpsys *scpsys = dev_get_priv(power_domain->dev);
+
+	if (power_domain->id >= scpsys->soc_data->num_domains ||
+	    !scpsys->domains[power_domain->id].data)
+		return -EINVAL;
+
 	return 0;
 }
 
 const struct power_domain_ops mtk_power_domain_ops = {
+	.request = mtk_scpsys_request,
 	.off = mtk_scpsys_power_off,
 	.on = mtk_scpsys_power_on,
 };

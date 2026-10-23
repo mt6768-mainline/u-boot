@@ -128,6 +128,7 @@ struct mtk_scp_domain_data {
 	const struct mtk_scpsys_bus_prot_data bp_cfg[SPM_MAX_BUS_PROT_DATA];
 	int pwr_sta_offs;
 	int pwr_sta2nd_offs;
+	bool domain_supply;
 };
 
 struct mtk_scp_soc_data {
@@ -146,6 +147,7 @@ struct mtk_scp_domain {
 	void __iomem *infracfg;
 	void __iomem *infracfg_nao;
 	void __iomem *smi;
+	struct udevice *supply;
 	struct clk_bulk clks;
 	struct clk_bulk subsys_clks;
 	bool has_pd;
@@ -201,6 +203,7 @@ struct mtk_scpsys {
 #define BUS_PROT_WAY_EN(_set_mask, _set, _sta_mask, _sta)	\
 	_BUS_PROT(INFRA, INFRA_NAO, _set_mask, _set, _set, _sta_mask, _sta, \
 		  true, false, false, true)
+
 
 int mtk_scpsys_probe(struct udevice *dev);
 int mtk_power_controller_probe(struct udevice *dev);
