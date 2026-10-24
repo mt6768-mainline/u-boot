@@ -12,6 +12,8 @@
 #include <dm.h>
 #include <i2c.h>
 #include <log.h>
+#include <mapmem.h>
+#include <memalign.h>
 #include <asm/cache.h>
 #include <asm/io.h>
 #include <linux/delay.h>
@@ -121,6 +123,8 @@ enum DMA_REGS_OFFSET {
 	REG_RX_MEM_ADDR = 0x20,
 	REG_TX_LEN = 0x24,
 	REG_RX_LEN = 0x28,
+	REG_TX_4G_MODE = 0x54,
+	REG_RX_4G_MODE = 0x58,
 };
 
 static const uint mt_i2c_regs_v1[] = {
@@ -212,6 +216,8 @@ struct mtk_i2c_soc_data {
 	const uint *regs;
 	uint dma_sync: 1;
 	uint ltiming_adjust: 1;
+	uint dma_bits;
+	bool no_dcm;
 };
 
 struct mtk_i2c_priv {
@@ -303,6 +309,7 @@ static void mtk_i2c_init_hw(struct mtk_i2c_priv *priv)
 	uint control_reg;
 
 	writel(I2C_DMA_HARD_RST, priv->pdmabase + REG_RST);
+	udelay(50);
 	writel(I2C_DMA_CLR_FLAG, priv->pdmabase + REG_RST);
 	i2c_writel(priv, REG_SOFTRESET, I2C_SOFT_RST);
 	/* set ioconfig */
@@ -311,7 +318,8 @@ static void mtk_i2c_init_hw(struct mtk_i2c_priv *priv)
 	else
 		i2c_writel(priv, REG_IO_CONFIG, I2C_IO_CONFIG_OPEN_DRAIN);
 
-	i2c_writel(priv, REG_DCM_EN, I2C_DCM_DISABLE);
+	if (!priv->soc_data->no_dcm)
+		i2c_writel(priv, REG_DCM_EN, I2C_DCM_DISABLE);
 	control_reg = I2C_CONTROL_ACKERR_DET_EN | I2C_CONTROL_CLK_EXT_EN;
 	if (priv->soc_data->dma_sync)
 		control_reg |= I2C_CONTROL_DMAACK | I2C_CONTROL_ASYNC;
@@ -426,13 +434,22 @@ static int mtk_i2c_set_speed(struct udevice *dev, uint speed)
 	uint timing_reg;
 	uint step_cnt;
 	uint clk_src;
+	ulong rate;
 	int ret = 0;
+
+	if (!speed)
+		return -EINVAL;
 
 	priv->speed = speed;
 	if (mtk_i2c_clk_enable(priv))
 		return log_msg_ret("set_speed enable clk", -1);
 
-	clk_src = clk_get_rate(&priv->clk_main) / I2C_DEFAULT_CLK_DIV;
+	rate = clk_get_rate(&priv->clk_main);
+	if (IS_ERR_VALUE(rate) || !rate) {
+		ret = -EINVAL;
+		goto exit;
+	}
+	clk_src = rate / I2C_DEFAULT_CLK_DIV;
 	i2c_writel(priv, REG_CLOCK_DIV, (I2C_DEFAULT_CLK_DIV - 1));
 	if (priv->speed > MAX_FS_MODE_SPEED) {
 		/* Set master code speed register */
@@ -505,7 +522,11 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 			       struct i2c_msg *msgs,
 			       int num, int left_num)
 {
+	ALLOC_CACHE_ALIGN_BUFFER(u8, txbuf, MAX_I2C_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8, rxbuf, MAX_I2C_LEN);
 	struct i2c_msg *msg_rx = NULL;
+	phys_addr_t txaddr = map_to_sysmem(txbuf);
+	phys_addr_t rxaddr = map_to_sysmem(rxbuf);
 	uint restart_flag = 0;
 	uint trans_error = 0;
 	uint irq_stat = 0;
@@ -515,6 +536,14 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 	uint start_reg;
 	uint addr_reg;
 	int ret = 0;
+
+	if (priv->soc_data->dma_bits &&
+	    ((u64)txaddr >> priv->soc_data->dma_bits ||
+	     (u64)rxaddr >> priv->soc_data->dma_bits))
+		return -ERANGE;
+	if (!priv->soc_data->dma_bits &&
+	    (upper_32_bits(txaddr) || upper_32_bits(rxaddr)))
+		return -ERANGE;
 
 	if (priv->auto_restart)
 		restart_flag = I2C_RS_TRANSFER;
@@ -567,28 +596,28 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 	/* Clear DMA interrupt flag */
 	writel(I2C_DMA_INT_FLAG_NONE, priv->pdmabase + REG_INT_FLAG);
 
-	/* Flush cache for first msg */
-	flush_cache((ulong)msgs->buf, msgs->len);
-
 	/*
 	 * prepare buffer data to start transfer
 	 * three cases here: read, write, write then read
 	 */
 	if (priv->op & I2C_MASTER_WR) {
+		if (msgs->len)
+			memcpy(txbuf, msgs->buf, msgs->len);
+		flush_dcache_range((ulong)txbuf,
+				   (ulong)txbuf + ALIGN(msgs->len, ARCH_DMA_MINALIGN));
 		/* Set DMA direction TX (w/ or w/o RX) */
 		writel(I2C_DMA_CON_TX, priv->pdmabase + REG_CON);
 
 		/* Write the tx buffer address to dma register */
-		writel((ulong)msgs->buf, priv->pdmabase + REG_TX_MEM_ADDR);
+		if (priv->soc_data->dma_bits > 32)
+			writel(upper_32_bits(txaddr), priv->pdmabase + REG_TX_4G_MODE);
+		writel(lower_32_bits(txaddr), priv->pdmabase + REG_TX_MEM_ADDR);
 		/* Write the tx length to dma register */
 		writel(msgs->len, priv->pdmabase + REG_TX_LEN);
 
 		if (priv->op & I2C_MASTER_RD) {
 			/* write then read */
 			msg_rx = msgs + 1;
-
-			/* Flush cache for second msg */
-			flush_cache((ulong)msg_rx->buf, msg_rx->len);
 		}
 	}
 
@@ -601,7 +630,11 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 		}
 
 		/* Write the rx buffer address to dma register */
-		writel((ulong)msg_rx->buf, priv->pdmabase + REG_RX_MEM_ADDR);
+		flush_dcache_range((ulong)rxbuf,
+				   (ulong)rxbuf + ALIGN(msg_rx->len, ARCH_DMA_MINALIGN));
+		if (priv->soc_data->dma_bits > 32)
+			writel(upper_32_bits(rxaddr), priv->pdmabase + REG_RX_4G_MODE);
+		writel(lower_32_bits(rxaddr), priv->pdmabase + REG_RX_MEM_ADDR);
 		/* Write the rx length to dma register */
 		writel(msg_rx->len, priv->pdmabase + REG_RX_LEN);
 	}
@@ -628,7 +661,8 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 				   I2C_RS_MUL_TRIG | I2C_TRANSAC_START);
 		}
 
-		if (irq_stat & (I2C_TRANSAC_COMP | restart_flag)) {
+		if (irq_stat & (I2C_TRANSAC_COMP | restart_flag |
+				I2C_HS_NACKERR | I2C_ACKERR)) {
 			tmo = false;
 			if (irq_stat & (I2C_HS_NACKERR | I2C_ACKERR))
 				trans_error = 1;
@@ -643,8 +677,7 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 	}
 
 	/* clear interrupt mask */
-	i2c_writel(priv, REG_INTR_MASK, ~(restart_flag | I2C_HS_NACKERR |
-		  I2C_ACKERR | I2C_TRANSAC_COMP));
+	i2c_writel(priv, REG_INTR_MASK, 0);
 
 	if (tmo || trans_error != 0) {
 		if (tmo) {
@@ -658,6 +691,11 @@ static int mtk_i2c_do_transfer(struct mtk_i2c_priv *priv,
 				      msgs->addr, irq_stat);
 		}
 		mtk_i2c_init_hw(priv);
+	}
+	if (!ret && msg_rx && msg_rx->len) {
+		invalidate_dcache_range((ulong)rxbuf,
+					(ulong)rxbuf + ALIGN(msg_rx->len, ARCH_DMA_MINALIGN));
+		memcpy(msg_rx->buf, rxbuf, msg_rx->len);
 	}
 
 	return ret;
@@ -695,6 +733,9 @@ static int mtk_i2c_transfer(struct udevice *dev, struct i2c_msg *msg,
 	uint num_cnt;
 	int ret;
 
+	if (nmsgs <= 0)
+		return -EINVAL;
+
 	priv->auto_restart = true;
 	left_num = nmsgs;
 	if (mtk_i2c_clk_enable(priv))
@@ -705,7 +746,8 @@ static int mtk_i2c_transfer(struct udevice *dev, struct i2c_msg *msg,
 			ret = -EINVAL;
 			goto err_exit;
 		}
-		if ((msg + num_cnt)->len > MAX_I2C_LEN) {
+		if ((msg + num_cnt)->len > MAX_I2C_LEN ||
+		    ((msg + num_cnt)->len && !(msg + num_cnt)->buf)) {
 			ret = -EINVAL;
 			goto err_exit;
 		}
@@ -767,6 +809,8 @@ static int mtk_i2c_of_to_plat(struct udevice *dev)
 
 	priv->base = dev_remap_addr_index(dev, 0);
 	priv->pdmabase = dev_remap_addr_index(dev, 1);
+	if (!priv->base || !priv->pdmabase)
+		return -EINVAL;
 	ret = clk_get_by_index(dev, 0, &priv->clk_main);
 	if (ret)
 		return log_msg_ret("clk_get_by_index 0", ret);
@@ -829,6 +873,14 @@ static const struct mtk_i2c_soc_data mt7986_soc_data = {
 	.ltiming_adjust = 0,
 };
 
+static const struct mtk_i2c_soc_data mt6768_soc_data = {
+	.regs = mt_i2c_regs_v2,
+	.dma_sync = 1,
+	.ltiming_adjust = 1,
+	.dma_bits = 36,
+	.no_dcm = true,
+};
+
 static const struct mtk_i2c_soc_data mt8183_soc_data = {
 	.regs = mt_i2c_regs_v2,
 	.dma_sync = 1,
@@ -855,6 +907,9 @@ static const struct dm_i2c_ops mtk_i2c_ops = {
 
 static const struct udevice_id mtk_i2c_ids[] = {
 	{
+		.compatible = "mediatek,mt6768-i2c",
+		.data = (ulong)&mt6768_soc_data,
+	}, {
 		.compatible = "mediatek,mt7622-i2c",
 		.data = (ulong)&mt76xx_soc_data,
 	}, {
