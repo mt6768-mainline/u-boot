@@ -193,7 +193,8 @@ static int mtk_pmic_button_probe(struct udevice *dev)
 	priv->deb_reg = regs->keys_regs[index].deb_reg;
 	priv->deb_mask = regs->keys_regs[index].deb_mask;
 
-	dev_read_u32(dev, "linux,code", &priv->code);
+	if (dev_read_u32(dev, "linux,code", &priv->code))
+		dev_read_u32(dev, "linux,keycodes", &priv->code);
 
 	return 0;
 }
