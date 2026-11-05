@@ -12,6 +12,7 @@
 #include <power/pmic.h>
 #include <power/mt6323.h>
 #include <power/mt6357.h>
+#include <power/mt6358.h>
 #include <power/mt6359.h>
 #include <linux/bitops.h>
 
@@ -67,6 +68,17 @@ static const struct mtk_pmic_regs mt6357_regs = {
 		MTK_PMIC_KEY_REGS(MT6357_TOPSTATUS, 0x8,
 				   MTK_PMIC_HOMEKEY_RST),
 	.pmic_rst_reg = MT6357_TOP_RST_MISC,
+	.rst_lprst_mask = MTK_PMIC_RST_DU_MASK,
+};
+
+static const struct mtk_pmic_regs mt6358_regs = {
+	.keys_regs[MTK_PMIC_PWRKEY_INDEX] =
+		MTK_PMIC_KEY_REGS(MT6358_TOPSTATUS, 0x2,
+				   MTK_PMIC_PWRKEY_RST),
+	.keys_regs[MTK_PMIC_HOMEKEY_INDEX] =
+		MTK_PMIC_KEY_REGS(MT6358_TOPSTATUS, 0x8,
+				   MTK_PMIC_HOMEKEY_RST),
+	.pmic_rst_reg = MT6358_TOP_RST_MISC,
 	.rst_lprst_mask = MTK_PMIC_RST_DU_MASK,
 };
 
@@ -228,6 +240,7 @@ static const struct button_ops mtk_pmic_button_ops = {
 static const struct udevice_id mtk_pmic_button_ids[] = {
 	{ .compatible = "mediatek,mt6323-keys", .data = (ulong)&mt6323_regs },
 	{ .compatible = "mediatek,mt6357-keys", .data = (ulong)&mt6357_regs },
+	{ .compatible = "mediatek,mt6358-keys", .data = (ulong)&mt6358_regs },
 	{ .compatible = "mediatek,mt6359-keys", .data = (ulong)&mt6359_regs },
 	{ }
 };
