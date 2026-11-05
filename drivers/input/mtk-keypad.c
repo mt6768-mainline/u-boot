@@ -56,6 +56,20 @@ static void mtk_keypad_calc_row_col(struct mtk_keypad_priv *priv,
 	}
 }
 
+static int mtk_keypad_remap_phone_keys(int code)
+{
+	switch (code) {
+	case KEY_VOLUMEUP:
+		return KEY_UP;
+	case KEY_VOLUMEDOWN:
+		return KEY_DOWN;
+	case KEY_POWER:
+		return KEY_ENTER;
+	default:
+		return code;
+	}
+}
+
 static int mtk_keypad_check(struct input_config *input)
 {
 	struct mtk_keypad_priv *priv = dev_get_priv(input->dev);
@@ -100,6 +114,12 @@ static int mtk_keypad_check(struct input_config *input)
 
 	n_keycodes = key_matrix_decode(&priv->matrix, keys, key_cnt, keycodes,
 				       KBC_MAX_KPENT);
+
+	if (CONFIG_IS_ENABLED(BUTTON_REMAP_PHONE_KEYS)) {
+		for (i = 0; i < n_keycodes; i++)
+			keycodes[i] = mtk_keypad_remap_phone_keys(keycodes[i]);
+	}
+
 	input_send_keycodes(priv->input, keycodes, n_keycodes);
 
 	return 1;
