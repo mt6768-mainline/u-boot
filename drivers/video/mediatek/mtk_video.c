@@ -45,6 +45,11 @@ static const struct mtk_ddp_comp_funcs ddp_ovl = {
 	.start = mtk_ovl_start,
 };
 
+static const struct mtk_ddp_comp_funcs ddp_ovl_2l = {
+	.config = mtk_ovl_2l_config,
+	.start = mtk_ovl_start,
+};
+
 static const struct mtk_ddp_comp_funcs ddp_rdma = {
 	.config = mtk_rdma_config,
 	/* layer_config is not needed for direct mode */
@@ -82,14 +87,20 @@ static const struct mtk_ddp_comp_funcs ddp_ufoe = {
 
 static const struct mtk_ddp_match mtk_ddp_matches[] = {
 	{ "mediatek,mt6572-disp-ovl",	UCLASS_MISC, DDP_COMPONENT_OVL0, &ddp_ovl },
+	{ "mediatek,mt8192-disp-ovl",	UCLASS_MISC, DDP_COMPONENT_OVL0, &ddp_ovl },
+	{ "mediatek,mt8192-disp-ovl-2l",UCLASS_MISC, DDP_COMPONENT_OVL_2L0, &ddp_ovl_2l },
 	{ "mediatek,mt6572-disp-rdma",	UCLASS_MISC, DDP_COMPONENT_RDMA0, &ddp_rdma },
+	{ "mediatek,mt6768-disp-rdma",	UCLASS_MISC, DDP_COMPONENT_RDMA0, &ddp_rdma },
 	{ "mediatek,mt2701-disp-color",	UCLASS_MISC, DDP_COMPONENT_COLOR0, &ddp_color },
 	{ "mediatek,mt8173-disp-color",	UCLASS_MISC, DDP_COMPONENT_COLOR0, &ddp_color },
 	{ "mediatek,mt2701-disp-pwm",	UCLASS_MISC, DDP_COMPONENT_BLS, NULL },
 	{ "mediatek,mt6572-dsi",	UCLASS_DSI_HOST, DDP_COMPONENT_DSI0, NULL },
+	{ "mediatek,mt8183-dsi",	UCLASS_DSI_HOST, DDP_COMPONENT_DSI0, NULL },
+	{ "mediatek,mt8183-disp-ccorr",	UCLASS_MISC, DDP_COMPONENT_CCORR, &ddp_ccorr },
 	{ "mediatek,mt8192-disp-ccorr",	UCLASS_MISC, DDP_COMPONENT_CCORR, &ddp_ccorr },
 	{ "mediatek,mt8183-disp-aal",	UCLASS_MISC, DDP_COMPONENT_AAL0, &ddp_aal },
 	{ "mediatek,mt8163-disp-gamma",	UCLASS_MISC, DDP_COMPONENT_GAMMA, &ddp_gamma },
+	{ "mediatek,mt8183-disp-gamma",	UCLASS_MISC, DDP_COMPONENT_GAMMA, &ddp_gamma },
 	{ "mediatek,mt8183-disp-dither",UCLASS_MISC, DDP_COMPONENT_DITHER0, &ddp_dither },
 	{ "mediatek,mt8173-disp-ufoe",	UCLASS_MISC, DDP_COMPONENT_UFOE, &ddp_ufoe },
 };

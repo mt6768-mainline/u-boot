@@ -912,8 +912,17 @@ static const struct mtk_dsi_driver_data mt6572_dsi_driver_data = {
 	.has_size_ctl = false,
 };
 
+static const struct mtk_dsi_driver_data mt8183_dsi_driver_data = {
+	.reg_cmdq_off = 0x200,
+	.reg_vm_cmd_off = 0x130,
+	.reg_shadow_dbg_off = 0x190,
+	.has_shadow_ctl = true,
+	.has_size_ctl = true,
+};
+
 static const struct udevice_id mtk_dsi_of_match[] = {
 	{ .compatible = "mediatek,mt6572-dsi", .data = (ulong)&mt6572_dsi_driver_data },
+	{ .compatible = "mediatek,mt8183-dsi", .data = (ulong)&mt8183_dsi_driver_data },
 	{ /* sentinel */ }
 };
 

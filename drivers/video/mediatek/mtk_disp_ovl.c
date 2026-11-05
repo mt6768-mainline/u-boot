@@ -170,6 +170,15 @@ void mtk_ovl_config(struct udevice *dev, struct display_timing *timing)
 	mtk_ddp_write(0x0, ovl->regs, DISP_REG_OVL_RST);
 }
 
+void mtk_ovl_2l_config(struct udevice *dev, struct display_timing *timing)
+{
+	struct mtk_disp_ovl *ovl = dev_get_priv(dev);
+
+	mtk_ovl_config(dev, timing);
+	mtk_ddp_write_mask(OVL_BGCLR_SEL_IN, ovl->regs,
+			   DISP_REG_OVL_DATAPATH_CON, OVL_BGCLR_SEL_IN);
+}
+
 static void mtk_ovl_layer_on(struct udevice *dev, unsigned int idx)
 {
 	unsigned int gmc_thrshd_l;
@@ -263,8 +272,26 @@ static const struct mtk_disp_ovl_data mt6572_ovl_driver_data = {
 	.fmt_rgb565_is_0 = false,
 };
 
+static const struct mtk_disp_ovl_data mt8192_ovl_driver_data = {
+	.addr = DISP_REG_OVL_ADDR_MT8173,
+	.gmc_bits = 10,
+	.layer_nr = 4,
+	.fmt_rgb565_is_0 = true,
+	.smi_id_en = true,
+};
+
+static const struct mtk_disp_ovl_data mt8192_ovl_2l_driver_data = {
+	.addr = DISP_REG_OVL_ADDR_MT8173,
+	.gmc_bits = 10,
+	.layer_nr = 2,
+	.fmt_rgb565_is_0 = true,
+	.smi_id_en = true,
+};
+
 static const struct udevice_id mtk_disp_ovl_ids[] = {
 	{ .compatible = "mediatek,mt6572-disp-ovl", .data = (ulong)&mt6572_ovl_driver_data },
+	{ .compatible = "mediatek,mt8192-disp-ovl", .data = (ulong)&mt8192_ovl_driver_data },
+	{ .compatible = "mediatek,mt8192-disp-ovl-2l", .data = (ulong)&mt8192_ovl_2l_driver_data },
 	{ }
 };
 

@@ -141,6 +141,7 @@ static int mtk_disp_ddp_probe(struct udevice *dev)
 }
 
 static const struct udevice_id mtk_disp_ccorr_ids[] = {
+	{ .compatible = "mediatek,mt8183-disp-ccorr" },
 	{ .compatible = "mediatek,mt8192-disp-ccorr" },
 	{ }
 };
@@ -152,6 +153,7 @@ static const struct udevice_id mtk_disp_aal_ids[] = {
 
 static const struct udevice_id mtk_disp_gamma_ids[] = {
 	{ .compatible = "mediatek,mt8163-disp-gamma" },
+	{ .compatible = "mediatek,mt8183-disp-gamma" },
 	{ }
 };
 

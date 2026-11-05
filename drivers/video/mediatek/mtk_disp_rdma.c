@@ -7,6 +7,7 @@
 #include <dm/device_compat.h>
 #include <dm/of.h>
 #include <dm/read.h>
+#include <linux/sizes.h>
 #include <video.h>
 
 #include "mtk_disp.h"
@@ -179,9 +180,15 @@ static const struct mtk_disp_rdma_data mt6572_rdma_driver_data = {
 	.broken_height = true,
 };
 
+static const struct mtk_disp_rdma_data mt6768_rdma_driver_data = {
+	.fifo_size = 6 * SZ_1K,
+};
+
 static const struct udevice_id mtk_disp_rdma_driver_dt_match[] = {
 	{ .compatible = "mediatek,mt6572-disp-rdma",
 	  .data = (ulong)&mt6572_rdma_driver_data},
+	{ .compatible = "mediatek,mt6768-disp-rdma",
+	  .data = (ulong)&mt6768_rdma_driver_data},
 	{ }
 };
 
