@@ -4,7 +4,6 @@
  * Author: James Liao <jamesjj.liao@mediatek.com>
  */
 
-#include "power-domain.h"
 #include <dm/device.h>
 #include <dm/device_compat.h>
 #include <dm/lists.h>
@@ -17,6 +16,7 @@
 
 #include "mtk-mmsys.h"
 #include "mt6572-mmsys.h"
+#include "mt6768-mmsys.h"
 
 #define MMSYS_SW_RESET_PER_REG 32
 
@@ -26,6 +26,15 @@ static const struct mtk_mmsys_driver_data mt6572_mmsys_driver_data = {
 	.num_routes = ARRAY_SIZE(mt6572_mmsys_routing_table),
 	.sw0_rst_offset = MT6572_MMSYS_SW_RST_B,
 	.num_resets = 32,
+};
+
+static const struct mtk_mmsys_driver_data mt6768_mmsys_driver_data = {
+	.clk_driver = "mt6768-mm",
+	.routes = mmsys_mt6768_routing_table,
+	.num_routes = ARRAY_SIZE(mmsys_mt6768_routing_table),
+	.rst_tb = mmsys_mt6768_rst_tb,
+	.num_resets = ARRAY_SIZE(mmsys_mt6768_rst_tb),
+	.sw0_rst_offset = MT6768_MMSYS_SW0_RST_B,
 };
 
 struct mtk_mmsys {
@@ -103,7 +112,6 @@ static int mtk_mmsys_bind(struct udevice *dev)
 static int mtk_mmsys_probe(struct udevice *dev)
 {
 	struct mtk_mmsys *mmsys = dev_get_priv(dev);
-	struct power_domain pd;
 	int ret;
 
 	mmsys->regs = dev_remap_addr(dev);
@@ -112,14 +120,6 @@ static int mtk_mmsys_probe(struct udevice *dev)
 		dev_err(dev, "Failed to ioremap mmsys registers: %d\n", ret);
 		return ret;
 	}
-
-	ret = power_domain_get(dev, &pd);
-	if (ret)
-		return ret;
-
-	ret = power_domain_on(&pd);
-	if (ret)
-		return ret;
 
 	mmsys->data = (const struct mtk_mmsys_driver_data *)dev_get_driver_data(dev);
 
@@ -185,6 +185,7 @@ const struct reset_ops mmsys_reset_ops = {
 
 static const struct udevice_id of_match_mtk_mmsys[] = {
 	{ .compatible = "mediatek,mt6572-mmsys", .data = (ulong)&mt6572_mmsys_driver_data },
+	{ .compatible = "mediatek,mt6768-mmsys", .data = (ulong)&mt6768_mmsys_driver_data },
 	{ /* sentinel */ }
 };
 
@@ -195,12 +196,14 @@ U_BOOT_DRIVER(mtk_mmsys) = {
 	.bind = mtk_mmsys_bind,
 	.probe = mtk_mmsys_probe,
 	.priv_auto = sizeof(struct mtk_mmsys),
+	.flags = DM_FLAG_DEFAULT_PD_CTRL_OFF,
 };
 
 U_BOOT_DRIVER(mtk_mmsys_reset) = {
 	.name = "mtk_mmsys_reset",
 	.id = UCLASS_RESET,
 	.ops = &mmsys_reset_ops,
+	.flags = DM_FLAG_DEFAULT_PD_CTRL_OFF,
 };
 
 MODULE_AUTHOR("Yongqiang Niu <yongqiang.niu@mediatek.com>");
