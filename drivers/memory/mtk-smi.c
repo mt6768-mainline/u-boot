@@ -188,8 +188,24 @@ static const struct mtk_smi_larb_gen mtk_smi_larb_mt6572 = {
 	.ostd = mtk_smi_larb_mt6572_ostd,
 };
 
+static int mtk_smi_larb_config_port_gen2_general(struct udevice *dev)
+{
+	struct mtk_smi_larb *larb = dev_get_priv(dev);
+	unsigned int port;
+
+	for (port = 0; port < SMI_LARB_PORT_NR_MAX; port++)
+		clrbits_le32(larb->base + SMI_LARB_NONSEC_CON(port), F_MMU_EN);
+
+	return 0;
+}
+
+static const struct mtk_smi_larb_gen mtk_smi_larb_mt6768 = {
+	.config_port = mtk_smi_larb_config_port_gen2_general,
+};
+
 static const struct udevice_id mtk_smi_larb_of_ids[] = {
 	{.compatible = "mediatek,mt6572-smi-larb", .data = (ulong)&mtk_smi_larb_mt6572},
+	{.compatible = "mediatek,mt6768-smi-larb", .data = (ulong)&mtk_smi_larb_mt6768},
 	{}
 };
 
@@ -245,8 +261,15 @@ static const struct mtk_smi_common_plat mtk_smi_common_mt6572 = {
 	.init     = mtk_smi_common_mt6572_init,
 };
 
+static const struct mtk_smi_common_plat mtk_smi_common_mt6768 = {
+	.type = MTK_SMI_GEN2,
+	.has_gals = true,
+	.bus_sel = F_MMU1_LARB(1) | F_MMU1_LARB(4),
+};
+
 static const struct udevice_id mtk_smi_common_of_ids[] = {
 	{.compatible = "mediatek,mt6572-smi-common", .data = (ulong)&mtk_smi_common_mt6572},
+	{.compatible = "mediatek,mt6768-smi-common", .data = (ulong)&mtk_smi_common_mt6768},
 	{}
 };
 
@@ -281,12 +304,18 @@ static int mtk_smi_common_probe(struct udevice *dev)
 			break;
 		case MTK_SMI_GEN1:
 		case MTK_SMI_GEN2:
-			return -EINVAL;
+			common->base = dev_remap_addr_index(dev, 0);
+			if (IS_ERR(common->base))
+				return PTR_ERR(common->base);
+			break;
 	}
 
 	init = common->plat->init;
 	for (i = 0; i < SMI_COMMON_INIT_REGS_NR && init && init[i].offset; i++)
 		writel_relaxed(init[i].value, common->base + init[i].offset);
+
+	if (common->plat->type == MTK_SMI_GEN2 && common->plat->bus_sel)
+		writel(common->plat->bus_sel, common->base + SMI_BUS_SEL);
 
 	return 0;
 }
