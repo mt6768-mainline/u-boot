@@ -84,6 +84,7 @@ static const struct mtk_ddp_match mtk_ddp_matches[] = {
 	{ "mediatek,mt6572-disp-ovl",	UCLASS_MISC, DDP_COMPONENT_OVL0, &ddp_ovl },
 	{ "mediatek,mt6572-disp-rdma",	UCLASS_MISC, DDP_COMPONENT_RDMA0, &ddp_rdma },
 	{ "mediatek,mt2701-disp-color",	UCLASS_MISC, DDP_COMPONENT_COLOR0, &ddp_color },
+	{ "mediatek,mt8173-disp-color",	UCLASS_MISC, DDP_COMPONENT_COLOR0, &ddp_color },
 	{ "mediatek,mt2701-disp-pwm",	UCLASS_MISC, DDP_COMPONENT_BLS, NULL },
 	{ "mediatek,mt6572-dsi",	UCLASS_DSI_HOST, DDP_COMPONENT_DSI0, NULL },
 	{ "mediatek,mt8192-disp-ccorr",	UCLASS_MISC, DDP_COMPONENT_CCORR, &ddp_ccorr },

@@ -84,8 +84,13 @@ static const struct mtk_disp_color_data mt2701_color_driver_data = {
 	.color_offset = DISP_COLOR_START_MT2701,
 };
 
+static const struct mtk_disp_color_data mt8173_color_driver_data = {
+	.color_offset = DISP_COLOR_START_MT8173,
+};
+
 static const struct udevice_id mtk_disp_color_driver_dt_match[] = {
 	{ .compatible = "mediatek,mt2701-disp-color", .data = (ulong)&mt2701_color_driver_data },
+	{ .compatible = "mediatek,mt8173-disp-color", .data = (ulong)&mt8173_color_driver_data },
 	{ }
 };
 
