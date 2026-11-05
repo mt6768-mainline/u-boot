@@ -32,6 +32,7 @@ obj-$(CONFIG_$(PHASE_)BMP) += bmp.o
 endif
 
 obj-$(CONFIG_BACKLIGHT_AAT2870) += aat2870_backlight.o
+obj-$(CONFIG_BACKLIGHT_KTD3137) += ktd3137_backlight.o
 obj-$(CONFIG_BACKLIGHT_LM3532) += lm3532_backlight.o
 obj-$(CONFIG_BACKLIGHT_LM3533) += lm3533_backlight.o
 obj-$(CONFIG_BACKLIGHT_LP855x) += lp855x_backlight.o

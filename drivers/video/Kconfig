@@ -867,6 +867,13 @@ config BACKLIGHT_AAT2870
 	  Only backlight is supported as for now. Supported backlight
 	  level range is from 2 to 255 with step of 1.
 
+config BACKLIGHT_KTD3137
+	bool "Backlight Driver for KTD3137"
+	depends on BACKLIGHT
+	select DM_I2C
+	help
+	  Say Y to enable the backlight driver for Kinetic KTD3137.
+
 config BACKLIGHT_LM3532
 	bool "Backlight Driver for LM3532"
 	depends on BACKLIGHT
