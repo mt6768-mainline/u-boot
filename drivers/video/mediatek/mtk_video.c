@@ -120,8 +120,7 @@ static int mtk_video_bind(struct udevice *dev)
 {
 	struct video_uc_plat *plat = dev_get_uclass_plat(dev);
 
-	/* 1920x1080 as safe default for 65xx */
-	plat->size = 1920 * 1080 * VNBYTES(VIDEO_BPP32);
+	plat->size = 1920 * 2400 * VNBYTES(VIDEO_BPP32);
 
 	return 0;
 }
