@@ -49,6 +49,26 @@
 
 #define INT_MUTEX				BIT(1)
 
+#define MT6768_MUTEX_MOD_DISP_OVL0		7
+#define MT6768_MUTEX_MOD_DISP_OVL0_2L		8
+#define MT6768_MUTEX_MOD_DISP_RDMA0		9
+#define MT6768_MUTEX_MOD_DISP_WDMA0		10
+#define MT6768_MUTEX_MOD_DISP_COLOR0		11
+#define MT6768_MUTEX_MOD_DISP_CCORR0		12
+#define MT6768_MUTEX_MOD_DISP_AAL0		13
+#define MT6768_MUTEX_MOD_DISP_GAMMA0		14
+#define MT6768_MUTEX_MOD_DISP_DITHER0		15
+#define MT6768_MUTEX_MOD_DISP_DSI0		16
+#define MT6768_MUTEX_MOD_DISP_PWM0		19
+
+#define MT6768_MUTEX_MOD_MDP_RDMA0		0
+#define MT6768_MUTEX_MOD_MDP_CCORR0		1
+#define MT6768_MUTEX_MOD_MDP_RSZ0		2
+#define MT6768_MUTEX_MOD_MDP_RSZ1		3
+#define MT6768_MUTEX_MOD_MDP_WDMA0		4
+#define MT6768_MUTEX_MOD_MDP_WROT0		5
+#define MT6768_MUTEX_MOD_MDP_TDSHP0		6
+
 #define MT2712_MUTEX_MOD_DISP_PWM2		10
 #define MT2712_MUTEX_MOD_DISP_OVL0		11
 #define MT2712_MUTEX_MOD_DISP_OVL1		12
@@ -81,6 +101,11 @@
 #define MT2712_MUTEX_SOF_DPI1			4
 #define MT2712_MUTEX_SOF_DSI2			5
 #define MT2712_MUTEX_SOF_DSI3			6
+#define MT8183_MUTEX_SOF_DSI0			1
+#define MT8183_MUTEX_SOF_DPI0			2
+
+#define MT8183_MUTEX_EOF_DSI0			(MT8183_MUTEX_SOF_DSI0 << 6)
+#define MT8183_MUTEX_EOF_DPI0			(MT8183_MUTEX_SOF_DPI0 << 6)
 
 #define MT6572_MUTEX_MOD_DISP_OVL		3
 #define MT6572_MUTEX_MOD_DISP_WDMA		6
@@ -134,6 +159,29 @@ static const u8 mt6572_mutex_mod[DDP_COMPONENT_ID_MAX] = {
 	[DDP_COMPONENT_WDMA0] = MT6572_MUTEX_MOD_DISP_WDMA,
 };
 
+static const u8 mt6768_mutex_mod[DDP_COMPONENT_ID_MAX] = {
+	[DDP_COMPONENT_AAL0] = MT6768_MUTEX_MOD_DISP_AAL0,
+	[DDP_COMPONENT_CCORR] = MT6768_MUTEX_MOD_DISP_CCORR0,
+	[DDP_COMPONENT_COLOR0] = MT6768_MUTEX_MOD_DISP_COLOR0,
+	[DDP_COMPONENT_DITHER0] = MT6768_MUTEX_MOD_DISP_DITHER0,
+	[DDP_COMPONENT_GAMMA] = MT6768_MUTEX_MOD_DISP_GAMMA0,
+	[DDP_COMPONENT_OVL0] = MT6768_MUTEX_MOD_DISP_OVL0,
+	[DDP_COMPONENT_OVL_2L0] = MT6768_MUTEX_MOD_DISP_OVL0_2L,
+	[DDP_COMPONENT_PWM0] = MT6768_MUTEX_MOD_DISP_PWM0,
+	[DDP_COMPONENT_RDMA0] = MT6768_MUTEX_MOD_DISP_RDMA0,
+	[DDP_COMPONENT_WDMA0] = MT6768_MUTEX_MOD_DISP_WDMA0,
+};
+
+static const u8 mt6768_mutex_table_mod[MUTEX_MOD_IDX_MAX] = {
+	[MUTEX_MOD_IDX_MDP_RDMA0] = MT6768_MUTEX_MOD_MDP_RDMA0,
+	[MUTEX_MOD_IDX_MDP_CCORR0] = MT6768_MUTEX_MOD_MDP_CCORR0,
+	[MUTEX_MOD_IDX_MDP_RSZ0] = MT6768_MUTEX_MOD_MDP_RSZ0,
+	[MUTEX_MOD_IDX_MDP_RSZ1] = MT6768_MUTEX_MOD_MDP_RSZ1,
+	[MUTEX_MOD_IDX_MDP_WDMA] = MT6768_MUTEX_MOD_MDP_WDMA0,
+	[MUTEX_MOD_IDX_MDP_WROT0] = MT6768_MUTEX_MOD_MDP_WROT0,
+	[MUTEX_MOD_IDX_MDP_TDSHP0] = MT6768_MUTEX_MOD_MDP_TDSHP0,
+};
+
 static const u16 mt2712_mutex_sof[DDP_MUTEX_SOF_MAX] = {
 	[MUTEX_SOF_SINGLE_MODE] = MUTEX_SOF_SINGLE_MODE,
 	[MUTEX_SOF_DSI0] = MUTEX_SOF_DSI0,
@@ -144,11 +192,27 @@ static const u16 mt2712_mutex_sof[DDP_MUTEX_SOF_MAX] = {
 	[MUTEX_SOF_DSI3] = MUTEX_SOF_DSI3,
 };
 
+/* Add EOF setting so overlay hardware can receive frame done irq */
+static const u16 mt8183_mutex_sof[DDP_MUTEX_SOF_MAX] = {
+	[MUTEX_SOF_SINGLE_MODE] = MUTEX_SOF_SINGLE_MODE,
+	[MUTEX_SOF_DSI0] = MUTEX_SOF_DSI0 | MT8183_MUTEX_EOF_DSI0,
+	[MUTEX_SOF_DPI0] = MT8183_MUTEX_SOF_DPI0 | MT8183_MUTEX_EOF_DPI0,
+};
+
 static const struct mtk_mutex_data mt6572_mutex_driver_data = {
 	.mutex_mod = mt6572_mutex_mod,
 	.mutex_sof = mt2712_mutex_sof,
 	.mutex_mod_reg = MT2701_MUTEX0_MOD0,
 	.mutex_sof_reg = MT2701_MUTEX0_SOF0,
+};
+
+static const struct mtk_mutex_data mt6768_mutex_driver_data = {
+	.mutex_mod = mt6768_mutex_mod,
+	.mutex_sof = mt8183_mutex_sof,
+	.mutex_mod_reg = MT8183_MUTEX0_MOD0,
+	.mutex_sof_reg = MT8183_MUTEX0_SOF0,
+	.mutex_table_mod = mt6768_mutex_table_mod,
+	.no_clk = true,
 };
 
 struct mtk_mutex *mtk_mutex_get(struct udevice *dev)
@@ -377,6 +441,9 @@ static int mtk_mutex_probe(struct udevice *dev)
 	for (i = 0; i < MTK_MUTEX_MAX_HANDLES; i++)
 		mtx->mutex[i].id = i;
 
+	if (mtx->data->no_clk)
+		return 0;
+
 	ret = clk_get_by_index(dev, 0, &mtx->clk);
 	if (ret)
 		return ret;
@@ -390,6 +457,7 @@ static int mtk_mutex_probe(struct udevice *dev)
 
 static const struct udevice_id mutex_driver_dt_match[] = {
 	{ .compatible = "mediatek,mt6572-disp-mutex", .data = (ulong)&mt6572_mutex_driver_data },
+	{ .compatible = "mediatek,mt6768-disp-mutex", .data = (ulong)&mt6768_mutex_driver_data },
 	{ /* sentinel */ },
 };
 
