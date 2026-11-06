@@ -470,7 +470,9 @@ enum bootmenu_key bootmenu_autoboot_loop(struct bootmenu_data *menu,
 		int ichar;
 
 		if (ansi)
-			printf(ANSI_CURSOR_POSITION, menu->count + 5, 3);
+			printf(ANSI_CURSOR_POSITION,
+			       menu->start_row + menu->count + 4,
+			       menu->start_col + 2);
 		printf("Hit any key to stop autoboot: %d ", menu->delay);
 		for (i = 0; i < 100; ++i) {
 			if (!tstc()) {
@@ -516,7 +518,8 @@ enum bootmenu_key bootmenu_autoboot_loop(struct bootmenu_data *menu,
 	}
 
 	if (ansi)
-		printf(ANSI_CURSOR_POSITION ANSI_CLEAR_LINE, menu->count + 5, 1);
+		printf(ANSI_CURSOR_POSITION ANSI_CLEAR_LINE,
+		       menu->start_row + menu->count + 4, 1);
 
 	if (menu->delay == 0)
 		key = BKEY_SELECT;

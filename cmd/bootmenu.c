@@ -71,7 +71,8 @@ static void bootmenu_print_entry(void *data)
 	 * Move cursor to line where the entry will be drown (entry->num)
 	 * First 3 lines contain bootmenu header + 1 empty line
 	 */
-	printf(ANSI_CURSOR_POSITION, entry->num + 4, 7);
+	printf(ANSI_CURSOR_POSITION, entry->menu->start_row + 3 + entry->num,
+	       entry->menu->start_col + 6);
 
 	if (reverse)
 		puts(ANSI_COLOR_REVERSE);
@@ -388,6 +389,12 @@ static struct bootmenu_data *bootmenu_create(int uefi, int delay)
 	menu->active = 0;
 	menu->last_active = -1;
 	menu->first = NULL;
+	menu->start_row = env_get_ulong("bootmenu_top", 10, 1);
+	menu->start_col = env_get_ulong("bootmenu_left", 10, 1);
+	if (menu->start_row < 1)
+		menu->start_row = 1;
+	if (menu->start_col < 1)
+		menu->start_col = 1;
 
 	default_str = env_get("bootmenu_default");
 	if (default_str)
@@ -479,21 +486,22 @@ static void menu_display_statusline(struct menu *m)
 
 	menu = entry->menu;
 
-	printf(ANSI_CURSOR_POSITION, 1, 1);
+	printf(ANSI_CURSOR_POSITION, menu->start_row, 1);
 	puts(ANSI_CLEAR_LINE);
-	printf(ANSI_CURSOR_POSITION, 2, 3);
+	printf(ANSI_CURSOR_POSITION, menu->start_row + 1, menu->start_col + 2);
 	puts("*** U-Boot Boot Menu ***");
 	puts(ANSI_CLEAR_LINE_TO_END);
-	printf(ANSI_CURSOR_POSITION, 3, 1);
+	printf(ANSI_CURSOR_POSITION, menu->start_row + 2, 1);
 	puts(ANSI_CLEAR_LINE);
 
 	/* First 3 lines are bootmenu header + 2 empty lines between entries */
-	printf(ANSI_CURSOR_POSITION, menu->count + 5, 1);
+	printf(ANSI_CURSOR_POSITION, menu->start_row + menu->count + 4, 1);
 	puts(ANSI_CLEAR_LINE);
-	printf(ANSI_CURSOR_POSITION, menu->count + 6, 3);
+	printf(ANSI_CURSOR_POSITION, menu->start_row + menu->count + 5,
+	       menu->start_col + 2);
 	puts("Press UP/DOWN to move, ENTER to select, ESC to quit");
 	puts(ANSI_CLEAR_LINE_TO_END);
-	printf(ANSI_CURSOR_POSITION, menu->count + 7, 1);
+	printf(ANSI_CURSOR_POSITION, menu->start_row + menu->count + 6, 1);
 	puts(ANSI_CLEAR_LINE);
 }
 
