@@ -1886,6 +1886,7 @@ static int msdc_drv_probe(struct udevice *dev)
 
 	cfg->b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
 	cfg->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
+	cfg->host_caps |= MMC_CAP_CMD23;
 
 	host->mmc = &plat->mmc;
 	host->timeout_ns = 100000000;
