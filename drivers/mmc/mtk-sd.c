@@ -23,6 +23,7 @@
 #include <linux/io.h>
 #include <linux/iopoll.h>
 #include <linux/printk.h>
+#include <power/regulator.h>
 
 /* MSDC_CFG */
 #define MSDC_CFG_HS400_CK_MODE_EXT	BIT(22)
@@ -382,6 +383,7 @@ struct msdc_host {
 	uint last_data_write;
 
 	enum bus_mode timing;
+	enum mmc_voltage signal_voltage;
 
 	struct msdc_tune_para def_tune_para;
 	struct msdc_tune_para saved_tune_para;
@@ -1083,6 +1085,23 @@ static int msdc_ops_set_ios(struct udevice *dev)
 	struct msdc_host *host = dev_get_priv(dev);
 	struct mmc *mmc = &plat->mmc;
 	uint clock = mmc->clock;
+
+	if (CONFIG_IS_ENABLED(DM_REGULATOR) && mmc->vqmmc_supply &&
+	    host->signal_voltage != mmc->signal_voltage) {
+		int uV = 0;
+
+		if (mmc->signal_voltage == MMC_SIGNAL_VOLTAGE_180)
+			uV = 1800000;
+		else if (mmc->signal_voltage == MMC_SIGNAL_VOLTAGE_330)
+			uV = 3300000;
+
+		if (uV) {
+			if (regulator_set_value(mmc->vqmmc_supply, uV))
+				dev_dbg(dev, "failed to set vqmmc-voltage to %duV\n",
+					uV);
+			host->signal_voltage = mmc->signal_voltage;
+		}
+	}
 
 	if (IS_ENABLED(CONFIG_PINCTRL)) {
 		bool uhs = mmc->signal_voltage == MMC_SIGNAL_VOLTAGE_180;
